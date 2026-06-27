@@ -50,30 +50,45 @@ PanelWindow {
     readonly property real audioVolume: Math.min(1, Math.max(0, audioSink?.audio?.volume ?? 0))
     readonly property real audioSourceVolume: Math.min(1, Math.max(0, audioSource?.audio?.volume ?? 0))
 
-    readonly property var audioSinks: {
-        var list = [];
-        var nodes = Pipewire.nodes;
-        if (nodes) {
-            for (var i = 0; i < nodes.length; i++) {
-                var n = nodes[i];
-                if (n && n.ready && n.isSink && !n.isStream) list.push(n);
-            }
+    property var audioSinks: []
+    property var audioSources: []
+
+    function _addAudioNode(node) {
+        if (!node || !node.ready) return;
+        if (node.type === PwNodeType.AudioSink) {
+            if (audioSinks.indexOf(node) !== -1) return;
+            var s = audioSinks.slice();
+            s.push(node);
+            s.sort(function(a, b) { return (a.description || a.name || "").localeCompare(b.description || b.name || ""); });
+            audioSinks = s;
+        } else if (node.type === PwNodeType.AudioSource) {
+            if (audioSources.indexOf(node) !== -1) return;
+            var s2 = audioSources.slice();
+            s2.push(node);
+            s2.sort(function(a, b) { return (a.description || a.name || "").localeCompare(b.description || b.name || ""); });
+            audioSources = s2;
         }
-        list.sort(function(a, b) { return (a.description || a.name || "").localeCompare(b.description || b.name || ""); });
-        return list;
     }
 
-    readonly property var audioSources: {
-        var list = [];
-        var nodes = Pipewire.nodes;
-        if (nodes) {
-            for (var i = 0; i < nodes.length; i++) {
-                var n = nodes[i];
-                if (n && n.ready && !n.isSink && !n.isStream) list.push(n);
-            }
+    function _removeAudioNode(node) {
+        if (!node) return;
+        audioSinks = audioSinks.filter(function(n) { return n !== node; });
+        audioSources = audioSources.filter(function(n) { return n !== node; });
+    }
+
+    Timer {
+        interval: 500; repeat: true; running: true
+        onTriggered: {
+            try {
+                var nodes = controlCenter.audioTrackedNodes;
+                audioSinks = audioSinks.filter(function(n) { return nodes.indexOf(n) !== -1; });
+                audioSources = audioSources.filter(function(n) { return nodes.indexOf(n) !== -1; });
+                for (var i = 0; i < nodes.length; i++) {
+                    var n = nodes[i];
+                    if (n && n.ready) controlCenter._addAudioNode(n);
+                }
+            } catch (e) {}
         }
-        list.sort(function(a, b) { return (a.description || a.name || "").localeCompare(b.description || b.name || ""); });
-        return list;
     }
 
     function setAudioSourceVolume(vol) {
@@ -97,8 +112,20 @@ PanelWindow {
         if (node) Pipewire.preferredDefaultAudioSource = node;
     }
 
+    readonly property var audioTrackedNodes: {
+        var nodes = Pipewire.nodes.values;
+        var out = [];
+        for (var i = 0; i < nodes.length; i++) {
+            var n = nodes[i];
+            if (n && (n.type === PwNodeType.AudioSink || n.type === PwNodeType.AudioSource)) {
+                out.push(n);
+            }
+        }
+        return out;
+    }
+
     PwObjectTracker {
-        objects: controlCenter.audioSink ? [controlCenter.audioSink] : []
+        objects: controlCenter.audioTrackedNodes
     }
 
     function setVolume(vol) {
@@ -1293,7 +1320,6 @@ PanelWindow {
                     Item { Layout.preferredHeight: 4 }
                 }
             }
-        }
 
             // ---- AUDIO PAGE ----
             ScrollView {
@@ -1301,21 +1327,18 @@ PanelWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-                Column {
-                    width: parent.width
+                ColumnLayout {
+                    width: panel.width - 40
                     spacing: 10
-
-                    PageHeader {
-                        title: "Audio"
-                        onBackTapped: controlCenter.page = "main"
-                    }
 
                     Text {
                         text: "Output"
                         color: "#8fa59c"
                         font { family: "Inter"; pixelSize: 11; weight: 700 }
-                        leftPadding: 4
+                        Layout.leftMargin: 4
                     }
 
                     Repeater {
@@ -1323,8 +1346,8 @@ PanelWindow {
 
                         Rectangle {
                             required property var modelData
-                            width: parent.width
-                            height: 40
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 40
                             radius: 10
                             color: modelData === controlCenter.audioSink ? "#1d2a25" : "#16241f"
 
@@ -1370,6 +1393,7 @@ PanelWindow {
                     }
 
                     IconSlider {
+                        Layout.fillWidth: true
                         iconText: controlCenter.volumeIcon(controlCenter.audioVolume, controlCenter.audioMuted)
                         value: controlCenter.audioMuted ? 0 : controlCenter.audioVolume
                         onMoved: val => controlCenter.setVolume(val)
@@ -1381,7 +1405,7 @@ PanelWindow {
                         text: "Input"
                         color: "#8fa59c"
                         font { family: "Inter"; pixelSize: 11; weight: 700 }
-                        leftPadding: 4
+                        Layout.leftMargin: 4
                     }
 
                     Repeater {
@@ -1389,8 +1413,8 @@ PanelWindow {
 
                         Rectangle {
                             required property var modelData
-                            width: parent.width
-                            height: 40
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 40
                             radius: 10
                             color: modelData === controlCenter.audioSource ? "#1d2a25" : "#16241f"
 
@@ -1436,6 +1460,7 @@ PanelWindow {
                     }
 
                     IconSlider {
+                        Layout.fillWidth: true
                         iconText: controlCenter.volumeIcon(controlCenter.audioSourceVolume, controlCenter.audioSourceMuted)
                         value: controlCenter.audioSourceMuted ? 0 : controlCenter.audioSourceVolume
                         onMoved: val => controlCenter.setAudioSourceVolume(val)
@@ -1444,6 +1469,7 @@ PanelWindow {
                     Item { Layout.preferredHeight: 4 }
                 }
             }
+        }
     }
 
     // ---- Wi-Fi password dialog ----
