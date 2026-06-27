@@ -13,6 +13,8 @@ Item {
   property var storedNotifications: []
   property alias showPowerMenu: mainWidget.showPowerMenu
   property alias showAppLauncher: mainWidget.showAppLauncher
+  property alias showWallpaperMenu: mainWidget.showWallpaperMenu
+  property alias wallpaperSvc: mainWidget.wallpaperSvc
 
   ClockWidget {
     id: mainWidget

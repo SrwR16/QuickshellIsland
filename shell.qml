@@ -7,6 +7,7 @@ import "./Widgets/clock"
 import "./controlCenter"
 import "./Widgets/notifications"
 import "./Widgets/launcher"
+import "./Widgets/wallpaper"
 
 ShellRoot {
   id: root
@@ -28,8 +29,11 @@ ShellRoot {
 
     MouseArea {
       anchors.fill: parent
-      enabled: clockItem.showPowerMenu
-      onClicked: clockItem.showPowerMenu = false
+      enabled: clockItem.showPowerMenu || clockItem.showWallpaperMenu
+      onClicked: {
+        clockItem.showPowerMenu = false;
+        clockItem.showWallpaperMenu = false;
+      }
     }
 
     Clock {
@@ -52,6 +56,8 @@ ShellRoot {
       onNotifBannerDismissed: (notifRef) => notifService.dismissBanner(notifRef)
 
       onToggleControlCenter: isControlCenterOpen = true
+
+      wallpaperSvc: wallpaperSvc
     }
   }
 
@@ -60,6 +66,7 @@ ShellRoot {
     onTriggered: {
       powerMenuChecker.running = true;
       appLauncherChecker.running = true;
+      wallpaperChecker.running = true;
     }
   }
 
@@ -116,6 +123,25 @@ ShellRoot {
       }
     }
   }
+
+  // Wallpaper IPC poller — same pattern as power menu / app launcher
+  Process {
+    id: wallpaperChecker
+    command: ["sh", "-c", "test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && echo 1"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        if (this.text.trim() === "1") {
+          if (clockItem.showWallpaperMenu) {
+            clockItem.showWallpaperMenu = false;
+          } else {
+            clockItem.showWallpaperMenu = true;
+          }
+        }
+      }
+    }
+  }
+
+  WallpaperService { id: wallpaperSvc }
 
   AppLauncherService { id: appLauncherSvc }
 

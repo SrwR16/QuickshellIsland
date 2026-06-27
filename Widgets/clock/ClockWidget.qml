@@ -8,6 +8,7 @@ import "../media"
 import "../status"
 import "../notifications"
 import "../power"
+import "../wallpaper"
 
 Rectangle {
   id: clockWidget
@@ -184,6 +185,15 @@ Rectangle {
     onTriggered: clockWidget.showAppLauncher = false
   }
 
+  // --- Wallpaper menu state ---
+  property bool showWallpaperMenu: false
+  property bool wallpaperMenuHovered: false
+  property var wallpaperSvc: null
+  property Timer wallpaperMenuTimer: Timer {
+    interval: 20000
+    onTriggered: clockWidget.showWallpaperMenu = false
+  }
+
   // --- Notification state ---
   // Set from shell.qml via the latestNotification property binding.
   // When non-null, the island auto-expands to show the Dynamic Island banner.
@@ -203,7 +213,10 @@ Rectangle {
   }
 
   onShowPowerMenuChanged: {
-    if (showPowerMenu && powerMenuTimer) powerMenuTimer.restart();
+    if (showPowerMenu) {
+      if (showWallpaperMenu) showWallpaperMenu = false;
+      if (powerMenuTimer) powerMenuTimer.restart();
+    }
   }
 
   onPowerMenuHoveredChanged: {
@@ -218,6 +231,7 @@ Rectangle {
   onShowAppLauncherChanged: {
     if (showAppLauncher) {
       if (showPowerMenu) showPowerMenu = false;
+      if (showWallpaperMenu) showWallpaperMenu = false;
       if (appLauncherTimer) appLauncherTimer.restart();
     }
   }
@@ -230,11 +244,29 @@ Rectangle {
     }
   }
 
+  // --- Wallpaper menu lifecycle ---
+  onShowWallpaperMenuChanged: {
+    if (showWallpaperMenu) {
+      if (showPowerMenu) showPowerMenu = false;
+      if (showAppLauncher) showAppLauncher = false;
+      if (wallpaperMenuTimer) wallpaperMenuTimer.restart();
+    }
+  }
+
+  onWallpaperMenuHoveredChanged: {
+    if (wallpaperMenuHovered && wallpaperMenuTimer.running) {
+      wallpaperMenuTimer.stop();
+    } else if (!wallpaperMenuHovered && showWallpaperMenu) {
+      wallpaperMenuTimer.restart();
+    }
+  }
+
   // --- Notification lifecycle ---
   onLatestNotificationDataChanged: {
     if (_ready && latestNotificationData) {
       if (showPowerMenu) showPowerMenu = false;
       if (showAppLauncher) showAppLauncher = false;
+      if (showWallpaperMenu) showWallpaperMenu = false;
       if (notifUnpinTimer) notifUnpinTimer.restart();
     }
   }
@@ -268,9 +300,9 @@ Rectangle {
 
   // Size changes are the core of the Dynamic Island morph.
   // Regular expanded = 64×540; notification/power = 130×480; app launcher = 240×480; collapsed = 36×auto.
-  height: showAppLauncher ? 240 : (latestNotificationData || showPowerMenu ? 130 : (isExpanded ? 64 : 36))
-  width: latestNotificationData || showPowerMenu || showAppLauncher ? 480 : (isExpanded ? 540 : (mode !== "default" ? indicatorRow.implicitWidth + 86 : collapsedRow.implicitWidth + 86))
-  radius: latestNotificationData || showPowerMenu || showAppLauncher ? 28 : (isExpanded ? 22 : 18)
+  height: showAppLauncher ? 240 : (showWallpaperMenu ? 300 : (latestNotificationData || showPowerMenu ? 130 : (isExpanded ? 64 : 36)))
+  width: showWallpaperMenu ? 640 : (latestNotificationData || showPowerMenu || showAppLauncher ? 480 : (isExpanded ? 540 : (mode !== "default" ? indicatorRow.implicitWidth + 86 : collapsedRow.implicitWidth + 86)))
+  radius: showWallpaperMenu ? 28 : (latestNotificationData || showPowerMenu || showAppLauncher ? 28 : (isExpanded ? 22 : 18))
   color: "#0a1411"
 
   // Elastic morph animation for regular expand/collapse
@@ -287,6 +319,10 @@ Rectangle {
       if (clockWidget.showingNotification) return;
       if (clockWidget.showPowerMenu) {
         clockWidget.showPowerMenu = false;
+        return;
+      }
+      if (clockWidget.showWallpaperMenu) {
+        clockWidget.showWallpaperMenu = false;
         return;
       }
       if (clockWidget.showAppLauncher) return;
@@ -525,6 +561,81 @@ Rectangle {
     anchors.fill: parent
     visible: clockWidget.showPowerMenu
     powerAction: clockWidget.powerAction
+  }
+
+  // --- Wallpaper menu overlay ---
+  Item {
+    id: wallpaperMenuComponent
+    anchors.fill: parent
+    clip: true
+    visible: clockWidget.showWallpaperMenu
+
+    ColumnLayout {
+      anchors.fill: parent
+      anchors.margins: 16
+      spacing: 10
+
+      // Header
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: 8
+
+        Text {
+          text: ""
+          color: "#61afef"
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 16 }
+        }
+
+        Text {
+          text: "Wallpapers"
+          color: "#eae6dc"
+          font { family: "Inter"; pixelSize: 14; weight: Font.Bold }
+          Layout.fillWidth: true
+        }
+
+        Text {
+          text: "✕"
+          color: "#eae6dc"
+          opacity: 0.5
+          font.pixelSize: 13
+          MouseArea {
+            anchors.fill: parent
+            anchors.margins: -6
+            cursorShape: Qt.PointingHandCursor
+            onClicked: clockWidget.showWallpaperMenu = false
+          }
+        }
+      }
+
+      // Grid
+      Rectangle {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        radius: 12
+        color: "#0d1f19"
+        clip: true
+
+        WallpaperGrid {
+          anchors.fill: parent
+          anchors.margins: 8
+          wallpaperModel: clockWidget.wallpaperSvc ? clockWidget.wallpaperSvc.wallpapers : []
+          wallService: clockWidget.wallpaperSvc
+          cellSize: Math.min(Math.max((parent.width - 2 * 12) / 4, 90), 150)
+          onWallpaperChosen: function(path) {
+            clockWidget.showWallpaperMenu = false
+          }
+        }
+
+        MouseArea {
+          anchors.fill: parent
+          hoverEnabled: true
+          propagateComposedEvents: true
+          onEntered: clockWidget.wallpaperMenuHovered = true
+          onExited: clockWidget.wallpaperMenuHovered = false
+          onClicked: mouse.accepted = false
+        }
+      }
+    }
   }
 
   NotificationBanner {
