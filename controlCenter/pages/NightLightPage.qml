@@ -17,6 +17,7 @@ ScrollView {
   signal toggleNightLight()
   signal setNightLightTemp(int temp)
   signal setNightLightAutoTemp(int day, int night)
+  signal setNightLightMode(string mode)
   signal applyNightLight()
   signal saveNightLight()
 
@@ -52,9 +53,7 @@ ScrollView {
           anchors.fill: parent
           cursorShape: Qt.PointingHandCursor
           onClicked: {
-            nlMode = "manual";
-            if (nlEnabled) applyNightLight();
-            saveNightLight();
+            setNightLightMode("manual");
           }
         }
       }
@@ -76,9 +75,7 @@ ScrollView {
           anchors.fill: parent
           cursorShape: Qt.PointingHandCursor
           onClicked: {
-            nlMode = "auto";
-            if (nlEnabled) applyNightLight();
-            saveNightLight();
+            setNightLightMode("auto");
           }
         }
       }

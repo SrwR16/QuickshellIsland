@@ -386,9 +386,8 @@ PanelWindow {
     FileView {
         id: nlStateFile
         path: controlCenter.nlStatePath
-        watchChanges: true
-        onFileChanged: {
-            var raw = nlStateFile.text.trim();
+        Component.onCompleted: {
+            var raw = nlStateFile.text().trim();
             if (!raw) return;
             try {
                 var s = JSON.parse(raw);
@@ -397,8 +396,8 @@ PanelWindow {
                 controlCenter.nlTemp = s.temperature || 4500;
                 controlCenter.nlDayTemp = s.dayTemp || 6500;
                 controlCenter.nlNightTemp = s.nightTemp || 3500;
-                controlCenter._applyNightLight();
             } catch (e) {}
+            controlCenter._applyNightLight();
         }
     }
 
@@ -429,7 +428,8 @@ PanelWindow {
         });
         nlSaveProc.command = ["sh", "-c",
             "mkdir -p $(dirname \"" + controlCenter.nlStatePath + "\") && " +
-            "cat > \"" + controlCenter.nlStatePath + "\" << 'EOF'\n" + s + "\nEOF"
+            "printf '%s\\n' \"" + s.replace(/\"/g, '\\"') + "\" > \"" + controlCenter.nlStatePath + ".tmp\" && " +
+            "mv -f \"" + controlCenter.nlStatePath + ".tmp\" \"" + controlCenter.nlStatePath + "\""
         ];
         nlSaveProc.running = true;
     }
@@ -740,6 +740,7 @@ PanelWindow {
               onBackRequested: controlCenter.page = "main"
               onToggleNightLight: controlCenter.toggleNightLight()
               onSetNightLightTemp: (t) => controlCenter.setNightLightTemp(t)
+              onSetNightLightMode: (mode) => { controlCenter.nlMode = mode; if (controlCenter.nlEnabled) controlCenter._applyNightLight(); controlCenter._saveNightLight(); }
               onSetNightLightAutoTemp: (d, n) => controlCenter.setNightLightAutoTemp(d, n)
               onApplyNightLight: controlCenter._applyNightLight()
               onSaveNightLight: controlCenter._saveNightLight()
