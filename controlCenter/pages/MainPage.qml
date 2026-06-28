@@ -8,6 +8,7 @@ ColumnLayout {
   spacing: 12
 
   property string page: ""
+  property var modeSvc: null
   property bool wifiEnabled: false
   property string wifiName: ""
   property var volumeIcon
@@ -55,6 +56,16 @@ ColumnLayout {
     }
 
     ToggleTile {
+      iconText: "󰂯"
+      label: "Bluetooth"
+      sublabel: btAdapter?.enabled ? "On" : "Off"
+      active: !!btAdapter?.enabled
+      expandable: true
+      onTapped: toggleBluetooth()
+      onExpandTapped: navigateTo("bluetooth")
+    }
+
+    ToggleTile {
       iconText: volumeIcon(audioVolume, audioMuted)
       label: "Audio"
       sublabel: audioMuted ? "Muted" : (audioSink?.description || audioSink?.name || "Speaker")
@@ -70,16 +81,6 @@ ColumnLayout {
     spacing: 12
 
     ToggleTile {
-      iconText: "󰂯"
-      label: "Bluetooth"
-      sublabel: btAdapter?.enabled ? "On" : "Off"
-      active: !!btAdapter?.enabled
-      expandable: true
-      onTapped: toggleBluetooth()
-      onExpandTapped: navigateTo("bluetooth")
-    }
-
-    ToggleTile {
       iconText: "󰂚"
       label: "Night Light"
       sublabel: nlEnabled ? "On" : "Off"
@@ -87,6 +88,15 @@ ColumnLayout {
       expandable: true
       onTapped: toggleNightLight()
       onExpandTapped: navigateTo("nightlight")
+    }
+
+    ToggleTile {
+      iconText: "󱐋"
+      label: "Performance"
+      sublabel: modeSvc ? modeSvc.currentMode.charAt(0).toUpperCase() + modeSvc.currentMode.slice(1) : "Balanced"
+      active: true
+      expandable: true
+      onExpandTapped: navigateTo("mode")
     }
 
     ToggleTile {

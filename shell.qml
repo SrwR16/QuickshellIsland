@@ -7,6 +7,7 @@ import "./Widgets/clock"
 import "./controlCenter"
 import "./Widgets/notifications"
 import "./Widgets/launcher"
+import "./Widgets/mode"
 import "./core"
 import "./Widgets/wallpaper"
 
@@ -59,6 +60,7 @@ ShellRoot {
       onToggleControlCenter: isControlCenterOpen = true
 
       wallpaperSvc: wallpaperSvc
+      modeSvc: modeSvc
     }
   }
 
@@ -69,7 +71,7 @@ ShellRoot {
 
   Process {
     id: ipcChecker
-    command: ["sh", "-c", "out=''; test -f /tmp/qs-power-menu && rm /tmp/qs-power-menu && out=\"${out}p\"; test -f /tmp/qs-app-launcher && rm /tmp/qs-app-launcher && out=\"${out}a\"; test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; echo \"$out\""]
+    command: ["sh", "-c", "out=''; test -f /tmp/qs-power-menu && rm /tmp/qs-power-menu && out=\"${out}p\"; test -f /tmp/qs-app-launcher && rm /tmp/qs-app-launcher && out=\"${out}a\"; test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; test -f /tmp/qs-mode-cycle && rm /tmp/qs-mode-cycle && out=\"${out}m\"; echo \"$out\""]
     stdout: StdioCollector {
       onStreamFinished: {
         var flags = this.text.trim()
@@ -79,6 +81,10 @@ ShellRoot {
           clockItem.showAppLauncher = true
         if (flags.indexOf("w") >= 0)
           clockItem.showWallpaperMenu = !clockItem.showWallpaperMenu
+        if (flags.indexOf("m") >= 0) {
+          modeSvc.cycleMode();
+          clockItem.showModeIndicator();
+        }
       }
     }
   }
@@ -152,8 +158,17 @@ ShellRoot {
 
   AppLauncherService { id: appLauncherSvc }
 
+  ModeService { id: modeSvc }
+
+  Shortcut {
+    sequences: ["Alt+F5"]
+    onActivated: { modeSvc.cycleMode(); clockItem.showModeIndicator(); }
+    context: Qt.ApplicationShortcut
+  }
+
   ControlCenter {
     isOpen: isControlCenterOpen
+    modeSvc: modeSvc
     storedNotifications: notifService.storedNotifications
     doNotDisturb: notifService.doNotDisturb
     onDndToggled: (val) => notifService.doNotDisturb = val

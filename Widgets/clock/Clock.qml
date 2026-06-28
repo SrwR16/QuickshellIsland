@@ -15,6 +15,9 @@ Item {
   property alias showAppLauncher: mainWidget.showAppLauncher
   property alias showWallpaperMenu: mainWidget.showWallpaperMenu
   property alias wallpaperSvc: mainWidget.wallpaperSvc
+  property alias modeSvc: mainWidget.modeSvc
+
+  function showModeIndicator() { mainWidget.showModeIndicator(); }
 
   ClockWidget {
     id: mainWidget

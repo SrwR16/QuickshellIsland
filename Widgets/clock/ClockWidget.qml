@@ -135,6 +135,15 @@ Rectangle {
     clockWidget.showPowerMenu = false;
   }
 
+  // --- Mode indicator ---
+  property var modeSvc: null
+  function showModeIndicator() {
+    if (_ready && !isExpanded) {
+      mode = "mode";
+      revertTimer.restart();
+    }
+  }
+
   // --- App launcher state ---
   property bool showAppLauncher: false
   property bool appLauncherHovered: false
@@ -451,6 +460,40 @@ Rectangle {
         color: clockWidget.numLock ? Theme.text : Theme.subtext
         font { family: "Inter"; pixelSize: 13; weight: 700 }
         Behavior on color { ColorAnimation { duration: 120 } }
+      }
+    }
+
+    // Mode indicator
+    RowLayout {
+      spacing: 8
+      visible: clockWidget.mode === "mode"
+
+      Text {
+        text: {
+          if (!clockWidget.modeSvc) return "";
+          var m = clockWidget.modeSvc.currentMode;
+          if (m === "silent") return "";
+          if (m === "performance") return "";
+          return "";
+        }
+        color: {
+          if (!clockWidget.modeSvc) return Theme.subtext;
+          var m = clockWidget.modeSvc.currentMode;
+          if (m === "silent") return Theme.tertiary;
+          if (m === "performance") return Theme.error;
+          return Theme.primary;
+        }
+        font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
+      }
+
+      Text {
+        text: {
+          if (!clockWidget.modeSvc) return "Balanced";
+          var m = clockWidget.modeSvc.currentMode;
+          return m.charAt(0).toUpperCase() + m.slice(1);
+        }
+        color: Theme.text
+        font { family: "Inter"; pixelSize: 13; weight: 700 }
       }
     }
 

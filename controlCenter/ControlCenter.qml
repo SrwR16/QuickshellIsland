@@ -377,6 +377,9 @@ PanelWindow {
         dev.forget();
     }
 
+    // --- Mode Service ---
+    property var modeSvc: null
+
     // --- Night Light ---
     property string nlStatePath: Quickshell.shellPath("scripts/night-light-state.json")
     property bool nlEnabled: false
@@ -622,8 +625,8 @@ PanelWindow {
     // ---- Panel ----
     Rectangle {
         id: panel
-        width: 480
-        height: Math.min(controlCenter.page === "main" ? mainPageHeightHint : 620, parent.height - 20)
+        width: 540
+        height: Math.min(controlCenter.page === "main" ? mainPageHeightHint : 580, parent.height - 20)
 
         property real mainPageHeightHint: 310
             + (controlCenter.activePlayer ? 160 : 0)
@@ -672,11 +675,12 @@ PanelWindow {
                 }
 
                 Text {
-                    text: controlCenter.page === "wifi" ? "Wi-Fi"
-                        : controlCenter.page === "bluetooth" ? "Bluetooth"
-                        : controlCenter.page === "audio" ? "Audio"
-                        : controlCenter.page === "nightlight" ? "Night Light"
-                        : "Control Center"
+                text: controlCenter.page === "wifi" ? "Wi-Fi"
+                    : controlCenter.page === "bluetooth" ? "Bluetooth"
+                    : controlCenter.page === "audio" ? "Audio"
+                    : controlCenter.page === "nightlight" ? "Night Light"
+                    : controlCenter.page === "mode" ? "Performance Mode"
+                    : "Control Center"
                     color: Theme.text
                     font { family: "Inter"; pixelSize: 15; weight: 700 }
                     Layout.fillWidth: true
@@ -689,6 +693,7 @@ PanelWindow {
                 Layout.fillHeight: true
                 spacing: 12
                 page: controlCenter.page
+                modeSvc: controlCenter.modeSvc
                 wifiEnabled: controlCenter.wifiEnabled
                 wifiName: controlCenter.wifiName
                 volumeIcon: controlCenter.volumeIcon
@@ -800,6 +805,18 @@ PanelWindow {
               onSetNightLightAutoTemp: (d, n) => controlCenter.setNightLightAutoTemp(d, n)
               onApplyNightLight: controlCenter._applyNightLight()
               onSaveNightLight: controlCenter._saveNightLight()
+            }
+
+            // ---- MODE PAGE ----
+            ModePage {
+              visible: controlCenter.page === "mode"
+              Layout.fillWidth: true
+              Layout.fillHeight: true
+              clip: true
+              currentMode: controlCenter.modeSvc ? controlCenter.modeSvc.currentMode : "balanced"
+              cpuTemp: controlCenter.modeSvc ? controlCenter.modeSvc.cpuTemp : 0
+              onSetMode: (m) => { if (controlCenter.modeSvc) controlCenter.modeSvc.setMode(m); }
+              onBackRequested: controlCenter.page = "main"
             }
         }
     }
