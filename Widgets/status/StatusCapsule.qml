@@ -5,7 +5,7 @@ import "../../core"
 
 Rectangle {
     id: statusCapsule
-    color: capsuleMouseArea.containsMouse ? "#2a3a34" : "#1a2421"
+    color: capsuleMouseArea.containsMouse ? Theme.surfaceHover : Theme.surface
     radius: 12
     height: 24
     width: layout.implicitWidth + 24
@@ -42,7 +42,7 @@ Rectangle {
                 : statusCapsule.wifiSignal > 50 ? "󰤥"
                 : statusCapsule.wifiSignal > 25 ? "󰤢"
                 : "󰤟"
-            color: statusCapsule.wifiName === "Disconnected" ? "#556663" : "#3ba889"
+            color: statusCapsule.wifiName === "Disconnected" ? Theme.subtext : Theme.primary
             font { family: "JetBrainsMono Nerd Font"; pixelSize: 13 }
         }
 
@@ -53,7 +53,7 @@ Rectangle {
             Rectangle {
                 anchors.fill: parent
                 radius: 3
-                color: "#33403c"
+                color: Theme.border
 
                 Rectangle {
                     anchors.left: parent.left
@@ -61,13 +61,13 @@ Rectangle {
                     anchors.bottom: parent.bottom
                     width: parent.width * Math.min(statusCapsule.batteryPercent, 100) / 100
                     radius: 3
-                    color: statusCapsule.batteryPercent > 20 ? "#3ba889" : "#d35d6e"
+                    color: statusCapsule.batteryPercent > 20 ? Theme.primary : Theme.error
                 }
 
                 Text {
                     anchors.centerIn: parent
                     text: statusCapsule.batteryPercent + "%"
-                    color: "#eae6dc"
+                    color: Theme.text
                     font { family: "Inter"; pixelSize: 9; weight: 700 }
                 }
             }
@@ -78,7 +78,7 @@ Rectangle {
                 width: 3
                 height: 6
                 radius: 1
-                color: statusCapsule.isCharging ? "#3ba889" : "#33403c"
+                color: statusCapsule.isCharging ? Theme.primary : Theme.border
             }
         }
     }

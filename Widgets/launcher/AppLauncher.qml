@@ -1,11 +1,12 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../../core"
 
 Rectangle {
   id: appLauncher
   radius: parent?.radius ?? 28
-  color: "#0a1411"
+  color: Theme.background
   clip: true
   focus: true
 
@@ -85,7 +86,7 @@ Rectangle {
       Layout.fillWidth: true
       Layout.preferredHeight: 32
       radius: 8
-      color: "#16241f"
+      color: Theme.surfaceLight
 
       RowLayout {
         anchors.fill: parent
@@ -95,13 +96,13 @@ Rectangle {
 
         Text {
           text: "󰊯"
-          color: "#556663"
+          color: Theme.subtext
           font { family: "JetBrainsMono Nerd Font"; pixelSize: 14 }
         }
 
         Text {
           Layout.fillWidth: true
-          color: searchText ? "#eae6dc" : "#556663"
+          color: searchText ? Theme.text : Theme.subtext
           text: searchText || "Search apps…"
           font { family: "Inter"; pixelSize: 12 }
           verticalAlignment: Text.AlignVCenter
@@ -111,7 +112,7 @@ Rectangle {
         Text {
           visible: searchText.length > 0
           text: "󰁨"
-          color: "#556663"
+          color: Theme.subtext
           font { family: "JetBrainsMono Nerd Font"; pixelSize: 12 }
           MouseArea {
             anchors.fill: parent
@@ -151,7 +152,7 @@ Rectangle {
         width: appList.width
         height: 32
         radius: 6
-        color: appList.currentIndex === index ? "#1d2a25" : (itemMouse.containsMouse ? "#16241f" : "transparent")
+        color: appList.currentIndex === index ? Theme.surfaceHover : (itemMouse.containsMouse ? Theme.surfaceLight : "transparent")
         Behavior on color { ColorAnimation { duration: 80 } }
 
         RowLayout {
@@ -176,7 +177,7 @@ Rectangle {
             Text {
               anchors.centerIn: parent
               text: "󰀻"
-              color: appList.currentIndex === index ? "#3ba889" : "#eae6dc"
+              color: appList.currentIndex === index ? Theme.primary : Theme.text
               opacity: {
                 if (modelData.icon && modelData.icon.indexOf("/") !== -1) return 0;
                 return appList.currentIndex === index ? 1 : 0.5;
@@ -187,7 +188,7 @@ Rectangle {
 
           Text {
             text: modelData.name
-            color: "#eae6dc"
+            color: Theme.text
             elide: Text.ElideRight
             font { family: "Inter"; pixelSize: 12; weight: appList.currentIndex === index ? 600 : 500 }
             Layout.fillWidth: true
@@ -216,7 +217,7 @@ Rectangle {
         policy: ScrollBar.AsNeeded
         contentItem: Rectangle {
           radius: 2
-          color: "#33403c"
+          color: Theme.border
         }
       }
     }

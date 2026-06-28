@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Bluetooth
+import "../../core"
 
 ScrollView {
   id: sv
@@ -30,18 +31,18 @@ ScrollView {
       Layout.fillWidth: true
       Layout.preferredHeight: 52
       radius: 14
-      color: "#1a2421"
+      color: Theme.surface
 
       RowLayout {
         anchors.fill: parent
         anchors.margins: 14
-        Text { text: "Bluetooth"; color: "#eae6dc"; font { family: "Inter"; pixelSize: 14; weight: 700 } }
+        Text { text: "Bluetooth"; color: Theme.text; font { family: "Inter"; pixelSize: 14; weight: 700 } }
         Item { Layout.fillWidth: true }
         Rectangle {
           width: 46; height: 26; radius: 13
-          color: btAdapter?.enabled ? "#3ba889" : "#33403c"
+          color: btAdapter?.enabled ? Theme.primary : Theme.border
           Rectangle {
-            width: 20; height: 20; radius: 10; color: "#fff"
+            width: 20; height: 20; radius: 10; color: Theme.backgroundFg
             anchors.verticalCenter: parent.verticalCenter
             x: btAdapter?.enabled ? parent.width - width - 3 : 3
             Behavior on x { NumberAnimation { duration: 120 } }
@@ -58,14 +59,14 @@ ScrollView {
 
       Text {
         text: "Devices"
-        color: "#eae6dc"; opacity: 0.7
+        color: Theme.text; opacity: 0.7
         font { family: "Inter"; pixelSize: 12; weight: 700 }
         Layout.fillWidth: true
       }
 
       Text {
         text: btScanning ? "Scanning…" : "Scan"
-        color: "#3ba889"
+        color: Theme.primary
         font { family: "Inter"; pixelSize: 11; weight: 600 }
         MouseArea {
           anchors.fill: parent; anchors.margins: -6
@@ -84,7 +85,7 @@ ScrollView {
         Layout.fillWidth: true
         Layout.preferredHeight: 56
         radius: 14
-        color: modelData.state === BluetoothDeviceState.Connected ? "#16241f" : (modelData.pairing ? "#1d2a25" : "#1a2421")
+        color: modelData.state === BluetoothDeviceState.Connected ? Theme.surfaceLight : (modelData.pairing ? Theme.surfaceHover : Theme.surface)
 
         RowLayout {
           anchors.fill: parent
@@ -93,17 +94,17 @@ ScrollView {
 
           Text {
             text: modelData.pairing ? "󰄉" : (modelData.state === BluetoothDeviceState.Connected ? "󰂱" : "󰂯")
-            color: modelData.state === BluetoothDeviceState.Connected ? "#3ba889" : "#eae6dc"
+            color: modelData.state === BluetoothDeviceState.Connected ? Theme.primary : Theme.text
             font { family: "JetBrainsMono Nerd Font"; pixelSize: 16 }
           }
 
           ColumnLayout {
             spacing: 0
             Layout.fillWidth: true
-            Text { text: btCard.modelData.name || btCard.modelData.deviceName || "Unknown device"; color: "#fff"; elide: Text.ElideRight; Layout.fillWidth: true; font { family: "Inter"; pixelSize: 13; weight: 600 } }
+            Text { text: btCard.modelData.name || btCard.modelData.deviceName || "Unknown device"; color: Theme.text; elide: Text.ElideRight; Layout.fillWidth: true; font { family: "Inter"; pixelSize: 13; weight: 600 } }
             Text {
               text: btDeviceSubtitle(btCard.modelData)
-              color: modelData.state === BluetoothDeviceState.Connected ? "#3ba889" : "#eae6dc"
+              color: modelData.state === BluetoothDeviceState.Connected ? Theme.primary : Theme.text
               opacity: modelData.state === BluetoothDeviceState.Connected ? 1 : 0.6
               font { family: "Inter"; pixelSize: 10 }
             }
@@ -112,7 +113,7 @@ ScrollView {
           Text {
             text: modelData.pairing ? "" : (modelData.paired ? "Forget" : "Pair")
             visible: !modelData.pairing
-            color: "#e06c75"
+            color: Theme.error
             font { family: "Inter"; pixelSize: 11; weight: 600 }
             MouseArea {
               anchors.fill: parent; anchors.margins: -8
@@ -124,7 +125,7 @@ ScrollView {
           Text {
             text: modelData.state === BluetoothDeviceState.Connected ? "Disconnect" : "Connect"
             visible: modelData.paired && !modelData.pairing
-            color: "#3ba889"
+            color: Theme.primary
             font { family: "Inter"; pixelSize: 11; weight: 600 }
             MouseArea {
               anchors.fill: parent; anchors.margins: -8
@@ -139,7 +140,7 @@ ScrollView {
     Text {
       visible: btDevices.length === 0 && !btScanning
       text: btAdapter?.enabled ? "No devices found" : "Turn on Bluetooth to see devices"
-      color: "#eae6dc"; opacity: 0.4
+      color: Theme.text; opacity: 0.4
       Layout.alignment: Qt.AlignHCenter
       Layout.topMargin: 12
       font { family: "Inter"; pixelSize: 12 }
@@ -148,7 +149,7 @@ ScrollView {
     Text {
       visible: btScanning && btDevices.length === 0
       text: "Scanning for devices…"
-      color: "#3ba889"; opacity: 0.6
+      color: Theme.primary; opacity: 0.6
       Layout.alignment: Qt.AlignHCenter
       Layout.topMargin: 12
       font { family: "Inter"; pixelSize: 12 }

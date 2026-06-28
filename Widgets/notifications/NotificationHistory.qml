@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Services.Notifications
+import "../../core"
 
 Rectangle {
   id: historyRoot
@@ -12,7 +13,7 @@ Rectangle {
   signal clearAll()
 
   radius: 16
-  color: "#1a2421"
+  color: Theme.surface
   visible: (storedNotifications?.length ?? 0) > 0
   clip: true
 
@@ -27,7 +28,7 @@ Rectangle {
 
       Text {
         text: "Notifications"
-        color: "#eae6dc"
+        color: Theme.text
         opacity: 0.7
         font { family: "Inter"; pixelSize: 11; weight: 700 }
         Layout.fillWidth: true
@@ -35,7 +36,7 @@ Rectangle {
 
       Text {
         text: "Clear all"
-        color: "#3ba889"
+        color: Theme.primary
         font { family: "Inter"; pixelSize: 11; weight: 600 }
         visible: (historyRoot.storedNotifications?.length ?? 0) > 1
 
@@ -67,7 +68,7 @@ Rectangle {
             width: parent.width
             height: notifItemCol.implicitHeight + 24
             radius: 14
-            color: "#16241f"
+            color: Theme.surfaceLight
 
             RowLayout {
               anchors.fill: parent
@@ -89,7 +90,7 @@ Rectangle {
                 Text {
                   text: modelData.appName || ""
                   visible: text !== ""
-                  color: "#8fa59c"
+                  color: Theme.muted
                   font { family: "Inter"; pixelSize: 10; weight: 500 }
                   elide: Text.ElideRight
                   Layout.fillWidth: true
@@ -98,7 +99,7 @@ Rectangle {
                 Text {
                   text: modelData.summary || ""
                   color: modelData.urgency === NotificationUrgency.Critical
-                    ? "#e34141" : "#eae6dc"
+                    ? Theme.error : Theme.text
                   font { family: "Inter"; pixelSize: 13; weight: 700 }
                   elide: Text.ElideRight
                   Layout.fillWidth: true
@@ -107,7 +108,7 @@ Rectangle {
                 Text {
                   text: modelData.body || ""
                   visible: text !== ""
-                  color: "#889994"
+                  color: Theme.subtext
                   font { family: "Inter"; pixelSize: 10 }
                   Layout.fillWidth: true
                   Layout.topMargin: 2
@@ -119,7 +120,7 @@ Rectangle {
               Text {
                 Layout.alignment: Qt.AlignTop
                 text: "✕"
-                color: "#556663"
+                color: Theme.subtext
                 font { family: "Inter"; pixelSize: 12 }
                 MouseArea {
                   anchors.fill: parent

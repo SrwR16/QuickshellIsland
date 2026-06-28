@@ -13,6 +13,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../Widgets/notifications"
+import "../core"
 
 PanelWindow {
     id: controlCenter
@@ -581,9 +582,9 @@ PanelWindow {
         anchors.top: parent.top
         anchors.topMargin: 10
 
-        color: "#0a1411"
+        color: Theme.background
         radius: 24
-        border.color: "#1a2421"
+        border.color: Theme.surface
         border.width: 2
         clip: true
 
@@ -601,7 +602,7 @@ PanelWindow {
 
                 Text {
                     text: "󰅁"
-                    color: "#eae6dc"
+                    color: Theme.text
                     font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
 
                     MouseArea {
@@ -621,7 +622,7 @@ PanelWindow {
                         : controlCenter.page === "audio" ? "Audio"
                         : controlCenter.page === "nightlight" ? "Night Light"
                         : "Control Center"
-                    color: "#eae6dc"
+                    color: Theme.text
                     font { family: "Inter"; pixelSize: 15; weight: 700 }
                     Layout.fillWidth: true
                 }

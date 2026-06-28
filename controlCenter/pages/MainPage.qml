@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../components"
 import "../../Widgets/notifications"
+import "../../core"
 
 ColumnLayout {
   spacing: 12
@@ -116,7 +117,7 @@ ColumnLayout {
     radius: 18
     clip: true
     visible: activePlayer !== null
-    color: "#1a1f1d"
+    color: Theme.surface
 
     Image {
       anchors.fill: parent
@@ -128,8 +129,8 @@ ColumnLayout {
     }
     Rectangle {
       anchors.fill: parent
-      color: "#000"
-      opacity: 0.3
+      color: Theme.overlay
+      opacity: 0.8
     }
 
     RowLayout {
@@ -141,7 +142,7 @@ ColumnLayout {
         width: 64
         height: 64
         radius: 14
-        color: "#14221d"
+        color: Theme.surfaceLight
         clip: true
 
         Image {
@@ -153,13 +154,13 @@ ColumnLayout {
 
           Rectangle {
             anchors.fill: parent
-            color: "#14221d"
+            color: Theme.surfaceLight
             visible: parent.status !== Image.Ready
 
             Text {
               anchors.centerIn: parent
               text: "󰎆"
-              color: "#3ba889"
+              color: Theme.primary
               font { family: "JetBrainsMono Nerd Font"; pixelSize: 24 }
             }
           }
@@ -175,7 +176,7 @@ ColumnLayout {
 
         Text {
           text: activePlayer?.identity || "Media Player"
-          color: "#eae6dc"
+          color: Theme.text
           opacity: 0.6
           elide: Text.ElideRight
           Layout.fillWidth: true
@@ -184,7 +185,7 @@ ColumnLayout {
 
         Text {
           text: activePlayer?.trackTitle || "Nothing playing"
-          color: "#fff"
+          color: Theme.text
           font { family: "Inter"; pixelSize: 15; weight: 700 }
           elide: Text.ElideRight
           Layout.fillWidth: true
@@ -192,7 +193,7 @@ ColumnLayout {
 
         Text {
           text: activePlayer?.trackArtist || ""
-          color: "#eae6dc"
+          color: Theme.text
           opacity: 0.7
           elide: Text.ElideRight
           Layout.fillWidth: true
@@ -206,7 +207,7 @@ ColumnLayout {
 
           Text {
             text: "󰒮"
-            color: "#889994"
+            color: Theme.subtext
             font { family: "JetBrainsMono Nerd Font"; pixelSize: 12 }
             MouseArea {
               anchors.fill: parent
@@ -221,12 +222,12 @@ ColumnLayout {
             width: 30
             height: 30
             radius: 15
-            color: "#eae6dc"
+            color: Theme.text
 
             Text {
               anchors.centerIn: parent
               text: activePlayer?.isPlaying ? "" : ""
-              color: "#1a1f1d"
+              color: Theme.surface
               font { family: "JetBrainsMono Nerd Font"; pixelSize: 12 }
             }
 
@@ -234,15 +235,15 @@ ColumnLayout {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
               hoverEnabled: true
-              onEntered: playBtn.color = "#fff"
-              onExited: playBtn.color = "#eae6dc"
+              onEntered: playBtn.color = Theme.text
+              onExited: playBtn.color = Theme.text
               onClicked: activePlayer?.togglePlaying()
             }
           }
 
           Text {
             text: "󰒭"
-            color: "#889994"
+            color: Theme.subtext
             font { family: "JetBrainsMono Nerd Font"; pixelSize: 12 }
             MouseArea {
               anchors.fill: parent
@@ -256,14 +257,14 @@ ColumnLayout {
             Layout.fillWidth: true
             height: 3
             radius: 1.5
-            color: "#ffffff"
+            color: Theme.text
             opacity: 0.15
             Layout.alignment: Qt.AlignVCenter
 
             Rectangle {
               height: parent.height
               radius: 1.5
-              color: "#eae6dc"
+              color: Theme.text
               width: parent.width * (activePlayer && activePlayer.length > 0
                 ? activePlayer.position / activePlayer.length
                 : 0)
@@ -290,7 +291,7 @@ ColumnLayout {
     Layout.topMargin: 8
     visible: storedNotifications.length === 0
     text: "No notifications"
-    color: "#eae6dc"
+    color: Theme.text
     opacity: 0.3
     horizontalAlignment: Text.AlignHCenter
     font { family: "Inter"; pixelSize: 12 }

@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Io
+import "../../core"
 
 Item {
   id: root
@@ -27,12 +28,12 @@ Item {
     anchors.fill: parent
     radius: width / 2
     visible: iconImg.status !== Image.Ready && (root.appIcon || root.appName)
-    color: root.appIcon ? "#1d4ed8" : "transparent"
+    color: root.appIcon ? Theme.primary : "transparent"
 
     Text {
       anchors.centerIn: parent
       text: root.appName ? root.appName.charAt(0).toUpperCase() : "?"
-      color: "#ffffff"
+      color: Theme.text
       font { family: "Inter"; pixelSize: parent.width * 0.45; weight: 700 }
     }
   }

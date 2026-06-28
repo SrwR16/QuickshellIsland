@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../components"
+import "../../core"
 
 ScrollView {
   id: sv
@@ -35,7 +36,7 @@ ScrollView {
 
     Text {
       text: "Output"
-      color: "#8fa59c"
+      color: Theme.muted
       font { family: "Inter"; pixelSize: 11; weight: 700 }
       Layout.leftMargin: 4
     }
@@ -48,7 +49,7 @@ ScrollView {
         Layout.fillWidth: true
         Layout.preferredHeight: 40
         radius: 10
-        color: modelData === audioSink ? "#1d2a25" : "#16241f"
+        color: modelData === audioSink ? Theme.surfaceHover : Theme.surfaceLight
 
         RowLayout {
           anchors.fill: parent
@@ -58,7 +59,7 @@ ScrollView {
 
           Text {
             text: modelData === audioSink ? "✓" : "  "
-            color: "#3ba889"
+            color: Theme.primary
             font { family: "Inter"; pixelSize: 13; weight: 700 }
           }
 
@@ -67,7 +68,7 @@ ScrollView {
             spacing: 1
             Text {
               text: modelData.description || modelData.name || ""
-              color: "#eae6dc"
+              color: Theme.text
               font { family: "Inter"; pixelSize: 12; weight: modelData === audioSink ? 600 : 400 }
               elide: Text.ElideRight
               Layout.fillWidth: true
@@ -75,7 +76,7 @@ ScrollView {
             Text {
               text: modelData.nickname || ""
               visible: text !== ""
-              color: "#6a8078"
+              color: Theme.subtext
               font { family: "Inter"; pixelSize: 9 }
               elide: Text.ElideRight
               Layout.fillWidth: true
@@ -102,7 +103,7 @@ ScrollView {
 
     Text {
       text: "Input"
-      color: "#8fa59c"
+      color: Theme.muted
       font { family: "Inter"; pixelSize: 11; weight: 700 }
       Layout.leftMargin: 4
     }
@@ -115,7 +116,7 @@ ScrollView {
         Layout.fillWidth: true
         Layout.preferredHeight: 40
         radius: 10
-        color: modelData === audioSource ? "#1d2a25" : "#16241f"
+        color: modelData === audioSource ? Theme.surfaceHover : Theme.surfaceLight
 
         RowLayout {
           anchors.fill: parent
@@ -125,7 +126,7 @@ ScrollView {
 
           Text {
             text: modelData === audioSource ? "✓" : "  "
-            color: "#3ba889"
+            color: Theme.primary
             font { family: "Inter"; pixelSize: 13; weight: 700 }
           }
 
@@ -134,7 +135,7 @@ ScrollView {
             spacing: 1
             Text {
               text: modelData.description || modelData.name || ""
-              color: "#eae6dc"
+              color: Theme.text
               font { family: "Inter"; pixelSize: 12; weight: modelData === audioSource ? 600 : 400 }
               elide: Text.ElideRight
               Layout.fillWidth: true
@@ -142,7 +143,7 @@ ScrollView {
             Text {
               text: modelData.nickname || ""
               visible: text !== ""
-              color: "#6a8078"
+              color: Theme.subtext
               font { family: "Inter"; pixelSize: 9 }
               elide: Text.ElideRight
               Layout.fillWidth: true

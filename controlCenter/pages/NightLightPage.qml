@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../components"
+import "../../core"
 
 ScrollView {
   id: sv
@@ -27,7 +28,7 @@ ScrollView {
 
     Text {
       text: "Mode"
-      color: "#8fa59c"
+      color: Theme.muted
       font { family: "Inter"; pixelSize: 11; weight: 700 }
       leftPadding: 4
     }
@@ -40,12 +41,12 @@ ScrollView {
         Layout.fillWidth: true
         height: 36
         radius: 10
-        color: nlMode === "manual" ? "#1d2a25" : "#16241f"
+        color: nlMode === "manual" ? Theme.surfaceHover : Theme.surfaceLight
 
         Text {
           anchors.centerIn: parent
           text: "Manual"
-          color: nlMode === "manual" ? "#eae6dc" : "#6a8078"
+          color: nlMode === "manual" ? Theme.text : Theme.subtext
           font { family: "Inter"; pixelSize: 12; weight: nlMode === "manual" ? 600 : 400 }
         }
 
@@ -62,12 +63,12 @@ ScrollView {
         Layout.fillWidth: true
         height: 36
         radius: 10
-        color: nlMode === "auto" ? "#1d2a25" : "#16241f"
+        color: nlMode === "auto" ? Theme.surfaceHover : Theme.surfaceLight
 
         Text {
           anchors.centerIn: parent
           text: "Auto"
-          color: nlMode === "auto" ? "#eae6dc" : "#6a8078"
+          color: nlMode === "auto" ? Theme.text : Theme.subtext
           font { family: "Inter"; pixelSize: 12; weight: nlMode === "auto" ? 600 : 400 }
         }
 
@@ -89,7 +90,7 @@ ScrollView {
 
       Text {
         text: "Temperature"
-        color: "#8fa59c"
+        color: Theme.muted
         font { family: "Inter"; pixelSize: 11; weight: 700 }
         leftPadding: 4
       }
@@ -104,7 +105,7 @@ ScrollView {
 
       Text {
         text: nlTemp + "K"
-        color: "#eae6dc"
+        color: Theme.text
         font { family: "Inter"; pixelSize: 11 }
         horizontalAlignment: Text.AlignHCenter
         Layout.fillWidth: true
@@ -119,7 +120,7 @@ ScrollView {
 
       Text {
         text: "Day Temperature"
-        color: "#8fa59c"
+        color: Theme.muted
         font { family: "Inter"; pixelSize: 11; weight: 700 }
         leftPadding: 4
       }
@@ -135,7 +136,7 @@ ScrollView {
 
       Text {
         text: nlDayTemp + "K"
-        color: "#eae6dc"
+        color: Theme.text
         font { family: "Inter"; pixelSize: 11 }
         horizontalAlignment: Text.AlignHCenter
         Layout.fillWidth: true
@@ -145,7 +146,7 @@ ScrollView {
 
       Text {
         text: "Night Temperature"
-        color: "#8fa59c"
+        color: Theme.muted
         font { family: "Inter"; pixelSize: 11; weight: 700 }
         leftPadding: 4
       }
@@ -161,7 +162,7 @@ ScrollView {
 
       Text {
         text: nlNightTemp + "K"
-        color: "#eae6dc"
+        color: Theme.text
         font { family: "Inter"; pixelSize: 11 }
         horizontalAlignment: Text.AlignHCenter
         Layout.fillWidth: true
@@ -169,7 +170,7 @@ ScrollView {
 
       Text {
         text: "Requires geoclue2 service for sunset/sunrise"
-        color: "#6a8078"
+        color: Theme.subtext
         font { family: "Inter"; pixelSize: 9 }
         horizontalAlignment: Text.AlignHCenter
         Layout.fillWidth: true

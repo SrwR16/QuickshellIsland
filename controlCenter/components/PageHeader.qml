@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../../core"
 
 RowLayout {
   property string title: ""
@@ -10,7 +11,7 @@ RowLayout {
 
   Text {
     text: "󰅁"
-    color: "#eae6dc"
+    color: Theme.text
     font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
     MouseArea {
       anchors.fill: parent
@@ -21,7 +22,7 @@ RowLayout {
   }
   Text {
     text: parent.title
-    color: "#eae6dc"
+    color: Theme.text
     font { family: "Inter"; pixelSize: 15; weight: 700 }
     Layout.fillWidth: true
   }

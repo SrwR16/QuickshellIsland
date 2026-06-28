@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Services.Notifications
+import "../../core"
 
 Rectangle {
   id: root
@@ -16,7 +17,7 @@ Rectangle {
 
   signal dismissed(var notifRef)
 
-  color: "#0d1117"
+  color: Theme.background
   clip: true
 
   layer.enabled: true
@@ -41,7 +42,7 @@ Rectangle {
 
       Text {
         text: root.notificationData?.appName ?? ""
-        color: "#9ca3af"
+        color: Theme.subtext
         font { family: "Inter"; pixelSize: 11; weight: 500 }
         elide: Text.ElideRight
         Layout.fillWidth: true
@@ -51,7 +52,7 @@ Rectangle {
         text: root.notificationData?.summary ?? ""
         color: root.notificationData
           && root.notificationData.urgency === NotificationUrgency.Critical
-          ? "#f87171" : "#f1f5f9"
+          ? Theme.error : Theme.text
         font { family: "Inter"; pixelSize: 14; weight: 700 }
         elide: Text.ElideRight
         Layout.fillWidth: true
@@ -60,7 +61,7 @@ Rectangle {
       Text {
         text: root.notificationData?.body ?? ""
         visible: text !== ""
-        color: "#64748b"
+        color: Theme.subtext
         font { family: "Inter"; pixelSize: 10; weight: 400 }
         elide: Text.ElideRight
         Layout.fillWidth: true
@@ -70,7 +71,7 @@ Rectangle {
       Text {
         text: root.notificationData?.body ?? ""
         visible: text !== ""
-        color: "#94a3b8"
+        color: Theme.muted
         font { family: "Inter"; pixelSize: 11; weight: 400 }
         elide: Text.ElideRight
         Layout.fillWidth: true
@@ -81,7 +82,7 @@ Rectangle {
 
     Text {
       text: "󰅂"
-      color: "#475569"
+      color: Theme.subtext
       font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
       Layout.alignment: Qt.AlignTop | Qt.AlignRight
       Layout.topMargin: 2

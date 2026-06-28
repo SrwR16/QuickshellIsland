@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../../core"
 
 Item {
   id: root
@@ -33,7 +34,7 @@ Item {
           width: root.cellSize
           height: Math.round(root.cellSize * 9 / 16)
           radius: 14
-          color: "#16241f"
+          color: Theme.surfaceVariant
           clip: true
 
           property bool hovered: false
@@ -54,7 +55,7 @@ Item {
             anchors.fill: parent
             radius: 14
             border.width: card.hovered ? 2 : 0
-            border.color: "#61afef"
+            border.color: Theme.tertiary
             color: "transparent"
             Behavior on border.width { NumberAnimation { duration: 100 } }
           }
@@ -76,13 +77,14 @@ Item {
           Rectangle {
             anchors { fill: parent; margins: card.hovered ? 2 : 4 }
             radius: 10
-            color: "#0a141180"
+            color: Theme.background
+            opacity: 0.5
             visible: thumb.status !== Image.Ready
 
             Text {
               anchors.centerIn: parent
               text: "󰸉"
-              color: "#eae6dc"
+              color: Theme.text
               opacity: 0.4
               font { family: "JetBrainsMono Nerd Font"; pixelSize: 28 }
             }

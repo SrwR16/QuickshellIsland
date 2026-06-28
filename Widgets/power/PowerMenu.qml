@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
+import "../../core"
 
 Rectangle {
   id: powerMenu
   radius: parent?.radius ?? 28
-  color: "#0a1411"
+  color: Theme.background
   clip: true
 
   property var powerAction: null
@@ -14,19 +15,18 @@ Rectangle {
     anchors.centerIn: parent
     spacing: 20
 
-    // Logout
     ColumnLayout {
       spacing: 6
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
         width: 50; height: 50; radius: 14
-        color: btnMouse.containsMouse ? "#1d2a25" : "#16241f"
+        color: btnMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: btnMouse.containsMouse ? "#eae6dc" : "#e06c75"
+          color: btnMouse.containsMouse ? Theme.text : Theme.error
           font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
@@ -40,22 +40,21 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["sh", "-c", "loginctl terminate-user $USER"])
         }
       }
-      Text { text: "Logout"; color: "#eae6dc"; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Logout"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
     }
 
-    // Lock
     ColumnLayout {
       spacing: 6
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
         width: 50; height: 50; radius: 14
-        color: lockBtnMouse.containsMouse ? "#1d2a25" : "#16241f"
+        color: lockBtnMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: lockBtnMouse.containsMouse ? "#eae6dc" : "#56b6c2"
+          color: lockBtnMouse.containsMouse ? Theme.text : Theme.secondary
           font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
@@ -69,22 +68,21 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["hyprlock"])
         }
       }
-      Text { text: "Lock"; color: "#eae6dc"; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Lock"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
     }
 
-    // Sleep
     ColumnLayout {
       spacing: 6
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
         width: 50; height: 50; radius: 14
-        color: sleepBtnMouse.containsMouse ? "#1d2a25" : "#16241f"
+        color: sleepBtnMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: sleepBtnMouse.containsMouse ? "#eae6dc" : "#61afef"
+          color: sleepBtnMouse.containsMouse ? Theme.text : Theme.tertiary
           font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
@@ -98,22 +96,21 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["systemctl", "suspend"])
         }
       }
-      Text { text: "Sleep"; color: "#eae6dc"; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Sleep"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
     }
 
-    // Reboot
     ColumnLayout {
       spacing: 6
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
         width: 50; height: 50; radius: 14
-        color: btnMouse2.containsMouse ? "#1d2a25" : "#16241f"
+        color: btnMouse2.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: btnMouse2.containsMouse ? "#eae6dc" : "#e5c07b"
+          color: btnMouse2.containsMouse ? Theme.text : Theme.warning
           font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
@@ -127,22 +124,21 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["systemctl", "reboot"])
         }
       }
-      Text { text: "Reboot"; color: "#eae6dc"; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Reboot"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
     }
 
-    // Shutdown
     ColumnLayout {
       spacing: 6
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
         width: 50; height: 50; radius: 14
-        color: btnMouse3.containsMouse ? "#1d2a25" : "#16241f"
+        color: btnMouse3.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: btnMouse3.containsMouse ? "#eae6dc" : "#e06c75"
+          color: btnMouse3.containsMouse ? Theme.text : Theme.error
           font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
@@ -156,7 +152,7 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["systemctl", "poweroff"])
         }
       }
-      Text { text: "Shutdown"; color: "#eae6dc"; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Shutdown"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
     }
   }
 }

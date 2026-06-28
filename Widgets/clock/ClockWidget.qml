@@ -9,6 +9,7 @@ import "../status"
 import "../notifications"
 import "../power"
 import "../wallpaper"
+import "../../core"
 
 Rectangle {
   id: clockWidget
@@ -303,7 +304,7 @@ Rectangle {
   height: showAppLauncher ? 240 : (showWallpaperMenu ? 300 : (latestNotificationData || showPowerMenu ? 130 : (isExpanded ? 64 : 36)))
   width: showWallpaperMenu ? 640 : (latestNotificationData || showPowerMenu || showAppLauncher ? 480 : (isExpanded ? 540 : (mode !== "default" ? indicatorRow.implicitWidth + 86 : collapsedRow.implicitWidth + 86)))
   radius: showWallpaperMenu ? 28 : (latestNotificationData || showPowerMenu || showAppLauncher ? 28 : (isExpanded ? 22 : 18))
-  color: "#0a1411"
+  color: Theme.background
 
   // Elastic morph animation for regular expand/collapse
   Behavior on height { NumberAnimation { duration: 450; easing.type: Easing.OutBack } }
@@ -361,16 +362,16 @@ Rectangle {
         spacing: 2
         height: 12
 
-        Rectangle { width: 2; height: Math.min(12, clockWidget.barHeights[0]); radius: 1; color: "#3ba889"; anchors.bottom: parent.bottom }
-        Rectangle { width: 2; height: Math.min(12, clockWidget.barHeights[1]); radius: 1; color: "#3ba889"; anchors.bottom: parent.bottom }
-        Rectangle { width: 2; height: Math.min(12, clockWidget.barHeights[2]); radius: 1; color: "#3ba889"; anchors.bottom: parent.bottom }
-        Rectangle { width: 2; height: Math.min(12, clockWidget.barHeights[3]); radius: 1; color: "#3ba889"; anchors.bottom: parent.bottom }
+        Rectangle { width: 2; height: Math.min(12, clockWidget.barHeights[0]); radius: 1; color: Theme.primary; anchors.bottom: parent.bottom }
+        Rectangle { width: 2; height: Math.min(12, clockWidget.barHeights[1]); radius: 1; color: Theme.primary; anchors.bottom: parent.bottom }
+        Rectangle { width: 2; height: Math.min(12, clockWidget.barHeights[2]); radius: 1; color: Theme.primary; anchors.bottom: parent.bottom }
+        Rectangle { width: 2; height: Math.min(12, clockWidget.barHeights[3]); radius: 1; color: Theme.primary; anchors.bottom: parent.bottom }
       }
     }
 
     Text {
       text: Qt.formatDateTime(clock.date, "HH:mm")
-      color: "#eae6dc"
+      color: Theme.text
       font { family: "Inter"; pixelSize: 14; weight: 500 }
     }
   }
@@ -392,7 +393,7 @@ Rectangle {
 
       Text {
         text: clockWidget.volumeIcon(clockWidget.volume, clockWidget.audioMuted)
-        color: clockWidget.audioMuted ? "#556663" : "#3ba889"
+        color: clockWidget.audioMuted ? Theme.subtext : Theme.primary
         font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
         Behavior on color { ColorAnimation { duration: 120 } }
       }
@@ -400,12 +401,12 @@ Rectangle {
       Item {
         width: 80; height: 6
         Rectangle {
-          anchors.fill: parent; radius: 3; color: "#33403c"
+          anchors.fill: parent; radius: 3; color: Theme.border
           Rectangle {
             anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
             width: parent.width * (clockWidget.audioMuted ? 0 : clockWidget.volume)
             radius: 3
-            color: clockWidget.audioMuted ? "#33403c" : "#3ba889"
+            color: clockWidget.audioMuted ? Theme.border : Theme.primary
             Behavior on width { NumberAnimation { duration: 150; easing: Easing.OutCubic } }
             Behavior on color { ColorAnimation { duration: 120 } }
           }
@@ -414,7 +415,7 @@ Rectangle {
 
       Text {
         text: Math.round((clockWidget.audioMuted ? 0 : clockWidget.volume) * 100) + "%"
-        color: clockWidget.audioMuted ? "#556663" : "#eae6dc"
+        color: clockWidget.audioMuted ? Theme.subtext : Theme.text
         font { family: "Inter"; pixelSize: 13; weight: 700 }
         Behavior on color { ColorAnimation { duration: 120 } }
       }
@@ -438,11 +439,11 @@ Rectangle {
       Item {
         width: 80; height: 6
         Rectangle {
-          anchors.fill: parent; radius: 3; color: "#33403c"
+          anchors.fill: parent; radius: 3; color: Theme.border
           Rectangle {
             anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
             width: parent.width * clockWidget.brightness
-            radius: 3; color: "#e3b341"
+            radius: 3; color: Theme.warning
             Behavior on width { NumberAnimation { duration: 200; easing: Easing.OutCubic } }
           }
         }
@@ -450,7 +451,7 @@ Rectangle {
 
       Text {
         text: Math.round(clockWidget.brightness * 100) + "%"
-        color: "#eae6dc"
+        color: Theme.text
         font { family: "Inter"; pixelSize: 13; weight: 700 }
       }
     }
@@ -462,14 +463,14 @@ Rectangle {
 
       Text {
         text: "󰜹"
-        color: clockWidget.capsLock ? "#3ba889" : "#556663"
+        color: clockWidget.capsLock ? Theme.primary : Theme.subtext
         font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
         Behavior on color { ColorAnimation { duration: 120 } }
       }
 
       Text {
         text: clockWidget.capsLock ? "ON" : "OFF"
-        color: clockWidget.capsLock ? "#eae6dc" : "#556663"
+        color: clockWidget.capsLock ? Theme.text : Theme.subtext
         font { family: "Inter"; pixelSize: 13; weight: 700 }
         Behavior on color { ColorAnimation { duration: 120 } }
       }
@@ -482,14 +483,14 @@ Rectangle {
 
       Text {
         text: "󰎦"
-        color: clockWidget.numLock ? "#3ba889" : "#556663"
+        color: clockWidget.numLock ? Theme.primary : Theme.subtext
         font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
         Behavior on color { ColorAnimation { duration: 120 } }
       }
 
       Text {
         text: clockWidget.numLock ? "ON" : "OFF"
-        color: clockWidget.numLock ? "#eae6dc" : "#556663"
+        color: clockWidget.numLock ? Theme.text : Theme.subtext
         font { family: "Inter"; pixelSize: 13; weight: 700 }
         Behavior on color { ColorAnimation { duration: 120 } }
       }
@@ -532,14 +533,14 @@ Rectangle {
 
         Text {
           text: Qt.formatDateTime(clock.date, "HH:mm")
-          color: "#eae6dc"
+          color: Theme.text
           Layout.alignment: Qt.AlignHCenter
           font { family: "Inter"; pixelSize: 18; weight: 500 }
         }
 
         Text {
           text: Qt.formatDateTime(clock.date, "ddd, MMM d")
-          color: "#eae6dc"
+          color: Theme.text
           opacity: 0.5
           Layout.alignment: Qt.AlignHCenter
           font { family: "Inter"; pixelSize: 11; weight: 400 }
@@ -582,20 +583,20 @@ Rectangle {
 
         Text {
           text: ""
-          color: "#61afef"
+          color: Theme.tertiary
           font { family: "JetBrainsMono Nerd Font"; pixelSize: 16 }
         }
 
         Text {
           text: "Wallpapers"
-          color: "#eae6dc"
+          color: Theme.text
           font { family: "Inter"; pixelSize: 14; weight: Font.Bold }
           Layout.fillWidth: true
         }
 
         Text {
           text: "✕"
-          color: "#eae6dc"
+          color: Theme.text
           opacity: 0.5
           font.pixelSize: 13
           MouseArea {
@@ -612,7 +613,7 @@ Rectangle {
         Layout.fillWidth: true
         Layout.fillHeight: true
         radius: 12
-        color: "#0d1f19"
+        color: Theme.container
         clip: true
 
         WallpaperGrid {

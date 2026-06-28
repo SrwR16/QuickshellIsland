@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../../core"
 
 Item {
   id: slider
@@ -14,13 +15,13 @@ Item {
     id: track
     anchors.fill: parent
     radius: 20
-    color: "#1a2421"
+    color: Theme.surface
 
     Rectangle {
       width: Math.max(40, parent.width * slider.value)
       height: parent.height
       radius: 20
-      color: "#3ba889"
+      color: Theme.primary
       Behavior on width { enabled: !drag.pressed; NumberAnimation { duration: 100 } }
     }
 
@@ -31,7 +32,7 @@ Item {
       spacing: 0
       Text {
         text: slider.iconText
-        color: "#000"
+        color: Theme.primaryFg
         font { family: "JetBrainsMono Nerd Font"; pixelSize: 15 }
       }
     }

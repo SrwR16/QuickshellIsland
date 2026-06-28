@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../../core"
 
 Rectangle {
   id: tile
@@ -14,7 +15,7 @@ Rectangle {
   Layout.fillWidth: true
   Layout.preferredHeight: 56
   radius: 16
-  color: active ? "#3ba889" : "#1a2421"
+  color: active ? Theme.primary : Theme.surface
 
   Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -25,12 +26,12 @@ Rectangle {
 
     Rectangle {
       width: 32; height: 32; radius: 16
-      color: tile.active ? "#2f8f76" : "#0a1411"
+      color: tile.active ? Theme.primaryFg : Theme.background
 
       Text {
         anchors.centerIn: parent
         text: tile.iconText
-        color: tile.active ? "#eae6dc" : "#3ba889"
+        color: tile.active ? Theme.text : Theme.primary
         font { family: "JetBrainsMono Nerd Font"; pixelSize: 14 }
       }
     }
@@ -39,14 +40,14 @@ Rectangle {
       Layout.fillWidth: true
       Text {
         text: tile.label
-        color: tile.active ? "#000" : "#eae6dc"
+        color: tile.active ? Theme.background : Theme.text
         elide: Text.ElideRight
         Layout.fillWidth: true
         font { family: "Inter"; pixelSize: 13; weight: 700 }
       }
       Text {
         text: tile.sublabel
-        color: tile.active ? "#000" : "#eae6dc"
+        color: tile.active ? Theme.background : Theme.text
         opacity: 0.7
         elide: Text.ElideRight
         Layout.fillWidth: true
@@ -56,7 +57,7 @@ Rectangle {
     Text {
       visible: tile.expandable
       text: "󰅂"
-      color: tile.active ? "#000" : "#eae6dc"
+      color: tile.active ? Theme.background : Theme.text
       opacity: 0.6
       font { family: "JetBrainsMono Nerd Font"; pixelSize: 14 }
     }

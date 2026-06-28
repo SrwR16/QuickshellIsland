@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../../core"
 
 RowLayout {
     id: mediaSection
@@ -15,7 +16,7 @@ RowLayout {
         width: 44
         height: 44
         radius: 10
-        color: "#14221d"
+        color: Theme.surfaceLight
         clip: true
 
         Image {
@@ -26,13 +27,13 @@ RowLayout {
 
             Rectangle {
                 anchors.fill: parent
-                color: "#14221d"
+                color: Theme.surfaceLight
                 visible: parent.status !== Image.Ready
 
                 Text {
                     anchors.centerIn: parent
                     text: "󰎆"
-                    color: "#3ba889"
+                    color: Theme.primary
                     font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
                 }
             }
@@ -52,15 +53,15 @@ RowLayout {
                 visible: mediaSection.isPlaying
                 Layout.alignment: Qt.AlignVCenter
 
-                Rectangle { width: 2; height: Math.min(10, mediaSection.barHeights[0]); radius: 0.5; color: "#3ba889"; anchors.bottom: parent.bottom }
-                Rectangle { width: 2; height: Math.min(10, mediaSection.barHeights[1]); radius: 0.5; color: "#3ba889"; anchors.bottom: parent.bottom }
-                Rectangle { width: 2; height: Math.min(10, mediaSection.barHeights[2]); radius: 0.5; color: "#3ba889"; anchors.bottom: parent.bottom }
-                Rectangle { width: 2; height: Math.min(10, mediaSection.barHeights[3]); radius: 0.5; color: "#3ba889"; anchors.bottom: parent.bottom }
+                Rectangle { width: 2; height: Math.min(10, mediaSection.barHeights[0]); radius: 0.5; color: Theme.primary; anchors.bottom: parent.bottom }
+                Rectangle { width: 2; height: Math.min(10, mediaSection.barHeights[1]); radius: 0.5; color: Theme.primary; anchors.bottom: parent.bottom }
+                Rectangle { width: 2; height: Math.min(10, mediaSection.barHeights[2]); radius: 0.5; color: Theme.primary; anchors.bottom: parent.bottom }
+                Rectangle { width: 2; height: Math.min(10, mediaSection.barHeights[3]); radius: 0.5; color: Theme.primary; anchors.bottom: parent.bottom }
             }
 
             Text {
                 text: mediaSection.trackTitle
-                color: "#eae6dc"
+                color: Theme.text
                 elide: Text.ElideRight
                 Layout.maximumWidth: 120
                 font { family: "Inter"; pixelSize: 13; weight: 600 }
@@ -69,7 +70,7 @@ RowLayout {
 
         Text {
             text: mediaSection.trackArtist
-            color: "#eae6dc"
+            color: Theme.text
             opacity: 0.6
             elide: Text.ElideRight
             Layout.maximumWidth: 120

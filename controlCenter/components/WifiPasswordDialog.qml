@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../../core"
 
 Item {
   id: root
@@ -15,8 +16,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     visible: root.visible
-    color: "#000"
-    opacity: 0.5
+    color: Theme.overlay
 
     MouseArea { anchors.fill: parent; onClicked: root.dismiss() }
   }
@@ -27,8 +27,8 @@ Item {
     width: 320
     height: pwCol.implicitHeight + 32
     radius: 18
-    color: "#101a17"
-    border.color: "#1a2421"
+    color: Theme.surfaceDim
+    border.color: Theme.surface
     border.width: 1
 
     ColumnLayout {
@@ -39,7 +39,7 @@ Item {
 
       Text {
         text: "Connect to " + root.pendingSsid
-        color: "#fff"
+        color: Theme.text
         font { family: "Inter"; pixelSize: 14; weight: 700 }
         Layout.fillWidth: true
         elide: Text.ElideRight
@@ -49,16 +49,16 @@ Item {
         Layout.fillWidth: true
         height: 40
         radius: 10
-        color: "#1a2421"
+        color: Theme.surface
 
         TextField {
           id: pwField
           anchors.fill: parent
           anchors.margins: 4
-          color: "#fff"
+          color: Theme.text
           echoMode: revealBtn.checked ? TextInput.Normal : TextInput.Password
           placeholderText: "Password"
-          placeholderTextColor: "#888"
+          placeholderTextColor: Theme.subtext
           background: null
           font { family: "Inter"; pixelSize: 13 }
         }
@@ -69,14 +69,14 @@ Item {
         CheckBox {
           id: revealBtn
           text: "Show password"
-          contentItem: Text { text: revealBtn.text; color: "#eae6dc"; opacity: 0.7; leftPadding: revealBtn.indicator.width + 6; font { family: "Inter"; pixelSize: 11 } }
+          contentItem: Text { text: revealBtn.text; color: Theme.text; opacity: 0.7; leftPadding: revealBtn.indicator.width + 6; font { family: "Inter"; pixelSize: 11 } }
         }
       }
 
       Text {
         visible: root.connectError.length > 0
         text: root.connectError
-        color: "#e06c75"
+        color: Theme.error
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
         font { family: "Inter"; pixelSize: 11 }
@@ -91,16 +91,16 @@ Item {
           Layout.fillWidth: true
           height: 36
           radius: 10
-          color: "#1a2421"
-          Text { anchors.centerIn: parent; text: "Cancel"; color: "#eae6dc"; font { family: "Inter"; pixelSize: 12; weight: 600 } }
+          color: Theme.surface
+          Text { anchors.centerIn: parent; text: "Cancel"; color: Theme.text; font { family: "Inter"; pixelSize: 12; weight: 600 } }
           MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { root.dismiss(); pwField.text = ""; } }
         }
         Rectangle {
           Layout.fillWidth: true
           height: 36
           radius: 10
-          color: "#3ba889"
-          Text { anchors.centerIn: parent; text: root.connecting ? "Connecting…" : "Connect"; color: "#000"; font { family: "Inter"; pixelSize: 12; weight: 700 } }
+          color: Theme.primary
+          Text { anchors.centerIn: parent; text: root.connecting ? "Connecting…" : "Connect"; color: Theme.primaryFg; font { family: "Inter"; pixelSize: 12; weight: 700 } }
           MouseArea {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
