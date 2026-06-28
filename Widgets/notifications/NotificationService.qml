@@ -41,6 +41,7 @@ Item {
 
       var arr = notifService.storedNotifications.slice();
       arr.push(data);
+      if (arr.length > 50) arr.splice(0, arr.length - 50);
       notifService.storedNotifications = arr;
     }
   }

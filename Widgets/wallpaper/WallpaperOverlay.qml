@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../../core"
 
 Item {
   id: root
@@ -17,7 +18,6 @@ Item {
     }
   }
 
-  // Global opacity animation
   opacity: root.isOpen ? 1 : 0
   visible: root.isOpen || opacity > 0
   Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuart } }
@@ -25,12 +25,12 @@ Item {
   // Dim backdrop
   Rectangle {
     anchors.fill: parent
-    color: "#000000"
-    opacity: root.isOpen ? 0.6 : 0
+    color: Theme.background
+    opacity: root.isOpen ? 0.55 : 0
     Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuart } }
   }
 
-  // Click-outside catcher — only fires when click is NOT inside the panel
+  // Click-outside catcher
   MouseArea {
     anchors.fill: parent
     enabled: root.isOpen
@@ -44,25 +44,27 @@ Item {
   // Centered panel
   Rectangle {
     id: panel
-    width: 640
-    height: 440
-    radius: 28
-    color: "#cc0a1411"
+    radius: 16
 
+    readonly property real maxWidth: Math.min(parent.width * 0.85, 760)
+    readonly property real maxHeight: Math.min(parent.height * 0.8, 540)
+    width: maxWidth
+    height: maxHeight
+
+    color: Theme.surface
     border.width: 1
-    border.color: "#1d2a25"
+    border.color: Theme.border
 
-    // Position & scale animation
     transform: [
       Translate {
-        y: root.isOpen ? 0 : 40
+        y: root.isOpen ? 0 : 30
         Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
       },
       Scale {
         origin.x: panel.width / 2
         origin.y: panel.height / 2
-        xScale: root.isOpen ? 1 : 0.92
-        yScale: root.isOpen ? 1 : 0.92
+        xScale: root.isOpen ? 1 : 0.95
+        yScale: root.isOpen ? 1 : 0.95
         Behavior on xScale { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
         Behavior on yScale { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
       }
@@ -72,8 +74,8 @@ Item {
 
     ColumnLayout {
       anchors.fill: parent
-      anchors.margins: 20
-      spacing: 16
+      anchors.margins: 16
+      spacing: 12
 
       // Header
       RowLayout {
@@ -81,26 +83,25 @@ Item {
         spacing: 8
 
         Text {
-          text: ""
-          color: "#61afef"
-          font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
+          text: "󰸉"
+          color: Theme.accent
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 16 }
         }
 
         Text {
           text: "Wallpapers"
-          color: "#eae6dc"
-          font { family: "Inter"; pixelSize: 15; weight: Font.Bold }
+          color: Theme.text
+          font { family: "Inter"; pixelSize: 14; weight: Font.Bold }
           Layout.fillWidth: true
         }
 
         Text {
-          text: "✕"
-          color: "#eae6dc"
-          opacity: 0.5
-          font { family: "Inter"; pixelSize: 14 }
+          text: "󰅖"
+          color: Theme.subtext
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 14 }
           MouseArea {
             anchors.fill: parent
-            anchors.margins: -6
+            anchors.margins: -8
             cursorShape: Qt.PointingHandCursor
             onClicked: close()
           }
@@ -111,20 +112,16 @@ Item {
       Rectangle {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        radius: 16
-        color: "#0d1f19"
+        radius: 12
+        color: Theme.surfaceDim
         clip: true
 
         WallpaperGrid {
           id: wallpaperGrid
           anchors.fill: parent
-          anchors.margins: 8
+          anchors.margins: 10
           wallpaperModel: root.wallpaperModel
           wallService: root.wallService
-          cellSize: Math.min(
-            Math.max((parent.width - 3 * 12) / 4, 90),
-            150
-          )
           onWallpaperChosen: function(path) {
             root.close()
           }

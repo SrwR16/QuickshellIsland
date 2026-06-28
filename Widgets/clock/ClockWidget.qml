@@ -67,31 +67,35 @@ Rectangle {
     return "󰕾";
   }
 
-  // --- Brightness ---
+  // --- Combined polling: brightness, caps lock, num lock ---
   property real brightness: 0
+  property bool capsLock: false
+  property bool numLock: false
 
-  property Process brightnessProc: Process {
-    command: ["brightnessctl", "-m"]
+  property Process pollProc: Process {
+    command: [
+      "sh", "-c",
+      "b=$(brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d '%' || echo 0); " +
+      "c=$(cat /sys/class/leds/*capslock*/brightness 2>/dev/null | head -1 || echo 0); " +
+      "n=$(cat /sys/class/leds/*numlock*/brightness 2>/dev/null | head -1 || echo 0); " +
+      "echo \"$b\"; echo \"$c\"; echo \"$n\""
+    ]
     stdout: StdioCollector {
       onStreamFinished: {
-        const parts = this.text.trim().split(",");
-        if (parts.length >= 5) {
-          const pct = parseInt(parts[3]);
-          if (!isNaN(pct)) {
-            clockWidget.brightness = Math.max(0, Math.min(1, pct / 100));
-          }
+        const lines = this.text.trim().split("\n");
+        if (lines.length >= 3) {
+          const pct = parseInt(lines[0]);
+          if (!isNaN(pct)) clockWidget.brightness = Math.max(0, Math.min(1, pct / 100));
+          clockWidget.capsLock = lines[1].trim() === "1";
+          clockWidget.numLock = lines[2].trim() === "1";
         }
       }
     }
   }
 
   Timer {
-    id: brightnessPoll
     interval: 2000; running: true; repeat: true
-    onTriggered: {
-      if (!clockWidget.brightnessProc.running)
-        clockWidget.brightnessProc.running = true;
-    }
+    onTriggered: { clockWidget.pollProc.running = true; }
   }
 
   onBrightnessChanged: {
@@ -105,48 +109,6 @@ Rectangle {
     if (val < 0.34) return "󰃞";
     if (val < 0.67) return "󰃟";
     return "󰃠";
-  }
-
-  // --- Caps Lock ---
-  property bool capsLock: false
-
-  property Process capsLockProc: Process {
-    command: ["sh", "-c", "cat /sys/class/leds/*capslock*/brightness 2>/dev/null | head -1"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const val = this.text.trim();
-        clockWidget.capsLock = val === "1";
-      }
-    }
-  }
-
-  Timer {
-    interval: 2000; running: true; repeat: true
-    onTriggered: {
-      if (!clockWidget.capsLockProc.running)
-        clockWidget.capsLockProc.running = true;
-    }
-  }
-
-  // --- Num Lock ---
-  property bool numLock: false
-
-  property Process numLockProc: Process {
-    command: ["sh", "-c", "cat /sys/class/leds/*numlock*/brightness 2>/dev/null | head -1"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const val = this.text.trim();
-        clockWidget.numLock = val === "1";
-      }
-    }
-  }
-
-  Timer {
-    interval: 2000; running: true; repeat: true
-    onTriggered: {
-      if (!clockWidget.numLockProc.running)
-        clockWidget.numLockProc.running = true;
-    }
   }
 
   onNumLockChanged: {
@@ -623,7 +585,6 @@ Rectangle {
           anchors.margins: 8
           wallpaperModel: clockWidget.wallpaperSvc ? clockWidget.wallpaperSvc.wallpapers : []
           wallService: clockWidget.wallpaperSvc
-          cellSize: Math.min(Math.max((parent.width - 2 * 12) / 4, 90), 150)
           onWallpaperChosen: function(path) {
             clockWidget.showWallpaperMenu = false
           }

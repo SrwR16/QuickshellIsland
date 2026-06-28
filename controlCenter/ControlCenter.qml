@@ -83,25 +83,29 @@ PanelWindow {
         objects: [controlCenter.audioSink, controlCenter.audioSource]
     }
 
+    // Listen to Pipewire node changes instead of polling every 500ms
+    function _syncAudioNodes() {
+        try {
+            var allNodes = Pipewire.nodes.values;
+            var nodes = [];
+            for (var i = 0; i < allNodes.length; i++) {
+                var n = allNodes[i];
+                if (n && (n.type === PwNodeType.AudioSink || n.type === PwNodeType.AudioSource)) {
+                    nodes.push(n);
+                }
+            }
+            audioSinks = audioSinks.filter(function(n) { return nodes.indexOf(n) !== -1; });
+            audioSources = audioSources.filter(function(n) { return nodes.indexOf(n) !== -1; });
+            for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i] && nodes[i].ready) controlCenter._addAudioNode(nodes[i]);
+            }
+        } catch (e) {}
+    }
+
+    // Sync audio nodes on a timer (Pipewire doesn't expose a node change signal)
     Timer {
-        interval: 500; repeat: true; running: true
-        onTriggered: {
-            try {
-                var allNodes = Pipewire.nodes.values;
-                var nodes = [];
-                for (var i = 0; i < allNodes.length; i++) {
-                    var n = allNodes[i];
-                    if (n && (n.type === PwNodeType.AudioSink || n.type === PwNodeType.AudioSource)) {
-                        nodes.push(n);
-                    }
-                }
-                audioSinks = audioSinks.filter(function(n) { return nodes.indexOf(n) !== -1; });
-                audioSources = audioSources.filter(function(n) { return nodes.indexOf(n) !== -1; });
-                for (var i = 0; i < nodes.length; i++) {
-                    if (nodes[i] && nodes[i].ready) controlCenter._addAudioNode(nodes[i]);
-                }
-            } catch (e) {}
-        }
+        interval: 2000; repeat: true; running: true
+        onTriggered: _syncAudioNodes()
     }
 
     function setAudioSourceVolume(vol) {
@@ -596,9 +600,14 @@ PanelWindow {
 
     Component.onCompleted: {
         refreshWifi();
+        _syncAudioNodes();
         backlightDetectProc.running = true;
         nlStateFile.reload();
-        var t = Qt.createQmlObject('import QtQuick; Timer { interval: 3000; onTriggered: playerctlData.fetch(); running: true; repeat: true }', controlCenter, "pctlMetaTimer")
+    }
+
+    property Timer pctlMetaTimer: Timer {
+        interval: 3000; running: true; repeat: true
+        onTriggered: playerctlData.fetch()
     }
 
     // ---- Inline components ----
