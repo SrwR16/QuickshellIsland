@@ -64,17 +64,23 @@ ShellRoot {
     }
   }
 
-  Timer {
-    interval: 2000; repeat: true; running: true
-    onTriggered: ipcChecker.running = true
-  }
-
   Process {
     id: ipcChecker
-    command: ["sh", "-c", "out=''; test -f /tmp/qs-power-menu && rm /tmp/qs-power-menu && out=\"${out}p\"; test -f /tmp/qs-app-launcher && rm /tmp/qs-app-launcher && out=\"${out}a\"; test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; test -f /tmp/qs-mode-cycle && rm /tmp/qs-mode-cycle && out=\"${out}m\"; echo \"$out\""]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var flags = this.text.trim()
+    running: true
+    command: ["sh", "-c",
+      "while true; do " +
+      "  out=''; " +
+      "  test -f /tmp/qs-power-menu && rm /tmp/qs-power-menu && out=\"${out}p\"; " +
+      "  test -f /tmp/qs-app-launcher && rm /tmp/qs-app-launcher && out=\"${out}a\"; " +
+      "  test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; " +
+      "  test -f /tmp/qs-mode-cycle && rm /tmp/qs-mode-cycle && out=\"${out}m\"; " +
+      "  if [ -n \"$out\" ]; then echo \"$out\"; fi; " +
+      "  sleep 0.05; " +
+      "done"
+    ]
+    stdout: SplitParser {
+      onRead: (data) => {
+        var flags = data.trim()
         if (flags.indexOf("p") >= 0 && !clockItem.showAppLauncher)
           clockItem.showPowerMenu = true
         if (flags.indexOf("a") >= 0 && !clockItem.showPowerMenu)

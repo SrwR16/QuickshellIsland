@@ -69,27 +69,30 @@ Rectangle {
   property Process pollProc: Process {
     command: [
       "sh", "-c",
-      "b=$(brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d '%' || echo 0); " +
-      "c=$(cat /sys/class/leds/*capslock*/brightness 2>/dev/null | head -1 || echo 0); " +
-      "n=$(cat /sys/class/leds/*numlock*/brightness 2>/dev/null | head -1 || echo 0); " +
-      "echo \"$b\"; echo \"$c\"; echo \"$n\""
+      "while true; do " +
+      "  b=$(brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d '%' || echo 0); " +
+      "  c=$(cat /sys/class/leds/*capslock*/brightness 2>/dev/null | head -1 || echo 0); " +
+      "  n=$(cat /sys/class/leds/*numlock*/brightness 2>/dev/null | head -1 || echo 0); " +
+      "  echo \"b=$b\"; echo \"c=$c\"; echo \"n=$n\"; " +
+      "  sleep 0.05; " +
+      "done"
     ]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const lines = this.text.trim().split("\n");
-        if (lines.length >= 3) {
-          const pct = parseInt(lines[0]);
+    running: true
+    stdout: SplitParser {
+      onRead: (data) => {
+        var line = data.trim();
+        if (line.length < 2 || line.charAt(1) !== '=') return;
+        var val = line.substring(2);
+        if (line.charAt(0) === 'b') {
+          var pct = parseInt(val);
           if (!isNaN(pct)) clockWidget.brightness = Math.max(0, Math.min(1, pct / 100));
-          clockWidget.capsLock = lines[1].trim() === "1";
-          clockWidget.numLock = lines[2].trim() === "1";
+        } else if (line.charAt(0) === 'c') {
+          clockWidget.capsLock = val.trim() === "1";
+        } else if (line.charAt(0) === 'n') {
+          clockWidget.numLock = val.trim() === "1";
         }
       }
     }
-  }
-
-  Timer {
-    interval: 2000; running: true; repeat: true
-    onTriggered: { clockWidget.pollProc.running = true; }
   }
 
   onBrightnessChanged: {
