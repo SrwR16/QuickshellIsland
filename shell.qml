@@ -7,6 +7,7 @@ import "./Widgets/clock"
 import "./controlCenter"
 import "./Widgets/notifications"
 import "./Widgets/launcher"
+import "./core"
 import "./Widgets/wallpaper"
 
 ShellRoot {
@@ -145,8 +146,12 @@ ShellRoot {
   FileView {
     id: themeFileWatcher
     path: Quickshell.shellPath("core/colors.json")
-    onTextChanged: {
-      var t = text.trim()
+    watchChanges: true
+    onLoaded: applyColors()
+    onTextChanged: applyColors()
+
+    function applyColors() {
+      var t = text().trim()
       if (t.length < 10) return
       try {
         var c = JSON.parse(t)
