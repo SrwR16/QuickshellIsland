@@ -10,7 +10,19 @@ Rectangle {
   property string fifoPath: ""
   readonly property bool active: promptText.length > 0
 
-  onActiveChanged: { if (active) pwField.forceActiveFocus(); }
+  onActiveChanged: {
+    if (active) {
+      pwField.forceActiveFocus();
+      focusTimer.restart();
+    }
+  }
+
+  Timer {
+    id: focusTimer
+    interval: 100
+    repeat: false
+    onTriggered: pwField.forceActiveFocus()
+  }
 
   signal submitted(string password)
   signal cancelled()

@@ -29,8 +29,9 @@ ShellRoot {
     // Fixed exclusive zone — notification banner makes the window taller
     // but keeps the clock's reservation so it floats over apps, not pushes them.
     WlrLayershell.exclusiveZone: 56
-    // Grab keyboard focus when the askpass dialog is open so the password field works
-    WlrLayershell.focusable: clockItem.showAskpass
+    // Exclusive keyboard grab when the askpass dialog is open — enables the
+    // password field to receive keystrokes without requiring a click first.
+    WlrLayershell.keyboardFocus: clockItem.showAskpass ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     MouseArea {
       anchors.fill: parent
