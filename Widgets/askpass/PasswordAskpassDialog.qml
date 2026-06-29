@@ -192,6 +192,7 @@ Rectangle {
   ]
 
   function submit() {
+    console.log("askpass: dialog submit, pw len=" + pwField.text.length);
     root.submitted(pwField.text);
     pwField.text = "";
   }

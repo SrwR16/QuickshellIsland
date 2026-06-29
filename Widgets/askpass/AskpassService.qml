@@ -14,6 +14,7 @@ QtObject {
     target: "askpass"
 
     function prompt(prompt: string, fifoPath: string): void {
+      console.log("askpass: IPC prompt received, fifo=" + fifoPath);
       root._queue = [];
       root._writing = false;
       root._queue.push({prompt: prompt, fifoPath: fifoPath});
@@ -26,16 +27,24 @@ QtObject {
   }
 
   function submit(password: string): void {
-    if (_writing || _queue.length === 0) return;
+    if (_writing || _queue.length === 0) {
+      console.log("askpass: submit blocked: _writing=" + _writing + " queue.len=" + _queue.length);
+      return;
+    }
     _writing = true;
     var req = _queue[0];
+    console.log("askpass: submitting pw len=" + password.length + " fifo=" + req.fifoPath);
     writeFifo(req.fifoPath, password);
   }
 
   function cancel(): void {
-    if (_writing || _queue.length === 0) return;
+    if (_writing || _queue.length === 0) {
+      console.log("askpass: cancel blocked: _writing=" + _writing + " queue.len=" + _queue.length);
+      return;
+    }
     _writing = true;
     var req = _queue[0];
+    console.log("askpass: cancel, fifo=" + req.fifoPath);
     writeFifo(req.fifoPath, "\n");
   }
 
@@ -45,6 +54,7 @@ QtObject {
       ', "--", ' + JSON.stringify(fifoPath) + ']; ' +
       'environment: {"PASS": ' + JSON.stringify(content) + '}' +
       '}';
+    console.log("askpass: writeFifo content len=" + content.length);
     var w = Qt.createQmlObject(qmlCode, root);
     if (!w) {
       console.log("askpass: failed to create write process");
