@@ -17,4 +17,4 @@ fi
 
 if ! command -v matugen &>/dev/null; then exit 0; fi
 
-matugen image "$WALL" -m dark --prefer darkness -c "$HOME/.config/matugen/config.toml" 2>/dev/null || true
+matugen image "$WALL" -m dark --prefer darkness --type scheme-fidelity -c "$HOME/.config/matugen/config.toml" 2>/dev/null || true
