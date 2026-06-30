@@ -255,7 +255,7 @@ Rectangle {
 
   Timer {
     id: notifUnpinTimer
-    interval: 6000
+    interval: 3500
     onTriggered: {
       clockWidget.notifBannerDismissed(clockWidget.latestNotificationData);
     }

@@ -14,7 +14,6 @@ Rectangle {
 
   radius: 16
   color: Theme.surface
-  visible: (storedNotifications?.length ?? 0) > 0
   clip: true
 
   ColumnLayout {
@@ -53,7 +52,8 @@ Rectangle {
       id: notifScroll
       Layout.fillWidth: true
       Layout.fillHeight: true
-      clip: true
+  visible: (storedNotifications?.length ?? 0) > 0
+  clip: true
 
       Column {
         spacing: 8

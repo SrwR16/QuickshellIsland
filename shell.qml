@@ -58,7 +58,7 @@ ShellRoot {
       latestNotification: notifService.latestNotification
       latestNotificationData: notifService.latestNotificationData
       storedNotifications: notifService.storedNotifications
-      onNotifDismissed: (notifRef) => notifService.dismissNotif(notifRef)
+      onNotifDismissed: (notifRef) => notifService.dismissBanner(notifRef)
       onNotifBannerDismissed: (notifRef) => notifService.dismissBanner(notifRef)
 
       onToggleControlCenter: isControlCenterOpen = true
@@ -79,6 +79,7 @@ ShellRoot {
       "  test -f /tmp/qs-app-launcher && rm /tmp/qs-app-launcher && out=\"${out}a\"; " +
       "  test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; " +
       "  test -f /tmp/qs-mode-cycle && rm /tmp/qs-mode-cycle && out=\"${out}m\"; " +
+      "  test -f /tmp/qs-toggle-cc && rm /tmp/qs-toggle-cc && out=\"${out}c\"; " +
       "  if [ -n \"$out\" ]; then echo \"$out\"; fi; " +
       "  sleep 0.05; " +
       "done"
@@ -96,6 +97,8 @@ ShellRoot {
           modeSvc.cycleMode();
           clockItem.showModeIndicator();
         }
+        if (flags.indexOf("c") >= 0)
+          isControlCenterOpen = !isControlCenterOpen;
       }
     }
   }

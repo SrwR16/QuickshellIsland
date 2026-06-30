@@ -23,6 +23,13 @@ ColumnLayout {
   property var activePlayer
   property string playerArt: ""
   property var storedNotifications: []
+  onStoredNotificationsChanged: {
+    var len = storedNotifications?.length ?? 0;
+    if (notifHist) {
+      notifHist.storedNotifications = storedNotifications;
+      notifHist.Layout.preferredHeight = len > 0 ? 200 : 0;
+    }
+  }
 
   signal navigateTo(string page)
   signal toggleWifi()
@@ -290,12 +297,9 @@ ColumnLayout {
   }
 
   NotificationHistory {
+    id: notifHist
     Layout.fillWidth: true
-    Layout.fillHeight: (storedNotifications?.length ?? 0) > 0
-    Layout.preferredHeight: (storedNotifications?.length ?? 0) > 0 ? 200 : 0
-    Layout.minimumHeight: (storedNotifications?.length ?? 0) > 0 ? 120 : 0
-    Layout.maximumHeight: (storedNotifications?.length ?? 0) > 0 ? 400 : 0
-    storedNotifications: storedNotifications
+    visible: true
     onDismissNotif: (notifRef) => dismissNotif(notifRef)
     onClearAll: clearNotifs()
   }

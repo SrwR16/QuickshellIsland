@@ -61,7 +61,7 @@ chmod 600 "$FIFO_PATH"
 # can show SSH-specific copy (key path / "Enter passphrase for...") and so
 # its cancel handler knows to signal failure on the FIFO rather than writing
 # an empty line — the two flows need different cancel semantics, see above.
-/usr/bin/qs ipc --newest call sshAskpass prompt "$1" "$FIFO_PATH" >/dev/null 2>&1 || {
+/usr/bin/qs ipc --newest call askpass prompt "$1" "$FIFO_PATH" >/dev/null 2>&1 || {
   echo "ERROR: quickshell not running or sshAskpass target unavailable" >&2
   exit 1
 }

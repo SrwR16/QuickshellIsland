@@ -31,8 +31,6 @@ PanelWindow {
     property bool doNotDisturb: false
     property var storedNotifications: []
 
-
-
     exclusionMode: ExclusionMode.Ignore
 
     anchors {
@@ -635,6 +633,7 @@ PanelWindow {
             + 30
             + 80
             + 60
+            + ((controlCenter.storedNotifications?.length ?? 0) > 0 ? 200 : 0)
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
