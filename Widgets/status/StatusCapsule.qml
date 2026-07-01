@@ -18,6 +18,7 @@ Rectangle {
     property bool isCharging: status.charging
     property string powerState: status.powerState
     property string networkState: status.networkState
+    property string connectionType: status.connType
     property bool isHovered: capsuleMouseArea.containsMouse
     signal clicked()
 
@@ -40,6 +41,7 @@ Rectangle {
 
         Text {
             text: statusCapsule.networkState === "Disconnected" ? "󰤭"
+                : statusCapsule.connectionType === "wired" ? "󰌚"
                 : statusCapsule.wifiSignal > 75 ? "󰤨"
                 : statusCapsule.wifiSignal > 50 ? "󰤥"
                 : statusCapsule.wifiSignal > 25 ? "󰤢"
