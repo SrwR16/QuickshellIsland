@@ -86,19 +86,21 @@ Rectangle {
     return "󰕾";
   }
 
-  // --- Combined polling: brightness, caps lock, num lock ---
+  // --- Combined polling: brightness, caps lock, num lock, kbd backlight ---
   property real brightness: 0
   property bool capsLock: false
   property bool numLock: false
+  property real kbdBrightness: 0
 
   property Process pollProc: Process {
     command: [
       "sh", "-c",
       "while true; do " +
-      "  b=$(brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d '%' || echo 0); " +
-      "  c=$(cat /sys/class/leds/*capslock*/brightness 2>/dev/null | head -1 || echo 0); " +
-      "  n=$(cat /sys/class/leds/*numlock*/brightness 2>/dev/null | head -1 || echo 0); " +
-      "  echo \"b=$b\"; echo \"c=$c\"; echo \"n=$n\"; " +
+      "  b=$(brightnessctl -m 2>/dev/null | head -1 | cut -d, -f4 | tr -d '%' || echo 0); " +
+      "  c=$(hyprctl devices -j 2>/dev/null | grep -q '\"capsLock\": true' && echo 1 || echo 0); " +
+      "  n=$(hyprctl devices -j 2>/dev/null | grep -q '\"numLock\": true' && echo 1 || echo 0); " +
+      "  k=$(brightnessctl -d '*kbd_backlight*' -m 2>/dev/null | head -1 | cut -d, -f4 | tr -d '%' || echo 0); " +
+      "  echo \"b=$b\"; echo \"c=$c\"; echo \"n=$n\"; echo \"k=$k\"; " +
       "  sleep 0.05; " +
       "done"
     ]
@@ -115,8 +117,18 @@ Rectangle {
           clockWidget.capsLock = val.trim() === "1";
         } else if (line.charAt(0) === 'n') {
           clockWidget.numLock = val.trim() === "1";
+        } else if (line.charAt(0) === 'k') {
+          var kpct = parseInt(val);
+          if (!isNaN(kpct)) clockWidget.kbdBrightness = Math.max(0, Math.min(1, kpct / 100));
         }
       }
+    }
+  }
+
+  onKbdBrightnessChanged: {
+    if (_ready && !clockWidget.isExpanded) {
+      mode = "kbdbacklight";
+      revertTimer.restart();
     }
   }
 
@@ -363,7 +375,7 @@ Rectangle {
   // Size changes are the core of the Dynamic Island morph.
   // Regular expanded = 64×540; CC = auto×540; notification/power = 130×480; app launcher = 240×480; askpass = 200×480; collapsed = 36×auto; pomodoro = 76x380; movies = 180x540; sys = 100x480; battery = 48x220; tray = 120x440
   height: showControlCenter ? ccItem.implicitHeight + 70 : showAppLauncher ? 240 : (showWallpaperMenu ? 300 : (showAskpass ? 200 : (showMovies ? 180 : (latestNotificationData || showPowerMenu ? 130 : (showTray ? 120 : (showSys ? 100 : (showPomodoro ? 76 : (showBatteryAlert ? 48 : (isExpanded ? 64 : 36)))))))))
-  width: showControlCenter ? 680 : showWallpaperMenu ? 640 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showSys ? 480 : (showMovies ? 540 : (showTray ? 440 : (showPomodoro ? 380 : (showBatteryAlert ? 220 : (isExpanded ? 540 : (mode !== "default" ? indicatorRow.implicitWidth + 86 : collapsedContent.contentWidth + 86)))))))
+  width: showControlCenter ? 680 : showWallpaperMenu ? 640 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showSys ? 480 : (showMovies ? 540 : (showTray ? 440 : (showPomodoro ? 380 : (showBatteryAlert ? 220 : (isExpanded ? 540 : (mode !== "default" ? indicatorRow.implicitWidth + 32 : collapsedContent.contentWidth + 86)))))))
   radius: showControlCenter ? 24 : showWallpaperMenu ? 28 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showMovies || showSys || showTray ? 28 : (showBatteryAlert ? 24 : (isExpanded ? 22 : 18)))
   color: Theme.background
 
@@ -575,6 +587,37 @@ Rectangle {
 
       Text {
         text: Math.round(clockWidget.brightness * 100) + "%"
+        color: Theme.text
+        font { family: "Inter"; pixelSize: 13; weight: 700 }
+      }
+    }
+
+    // Kbd Brightness mode
+    RowLayout {
+      spacing: 8
+      visible: clockWidget.mode === "kbdbacklight"
+
+      Text {
+        text: "󰌌"
+        color: Theme.primary
+        font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
+      }
+
+      Item {
+        width: 80; height: 6
+        Rectangle {
+          anchors.fill: parent; radius: 3; color: Theme.border
+          Rectangle {
+            anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
+            width: parent.width * clockWidget.kbdBrightness
+            radius: 3; color: Theme.primary
+            Behavior on width { NumberAnimation { duration: 200; easing: Easing.OutCubic } }
+          }
+        }
+      }
+
+      Text {
+        text: Math.round(clockWidget.kbdBrightness * 100) + "%"
         color: Theme.text
         font { family: "Inter"; pixelSize: 13; weight: 700 }
       }
