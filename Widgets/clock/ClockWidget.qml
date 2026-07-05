@@ -10,13 +10,37 @@ import "../notifications"
 import "../power"
 import "../wallpaper"
 import "../askpass"
+import "../pomodoro"
+import "../movies"
+import "../system"
+import "../tray"
+import "../../controlCenter"
 import "../../core"
 
 Rectangle {
   id: clockWidget
 
+  function exclusiveOpen(menuName) {
+    if (menuName !== "cc") showControlCenter = false;
+    if (menuName !== "power") showPowerMenu = false;
+    if (menuName !== "app") showAppLauncher = false;
+    if (menuName !== "wallpaper") showWallpaperMenu = false;
+    if (menuName !== "movies") showMovies = false;
+    if (menuName !== "sys") showSys = false;
+    if (menuName !== "tray") showTray = false;
+    if (menuName !== "battery") showBatteryAlert = false;
+    if (menuName !== "askpass") showAskpass = false;
+  }
+
+  property bool showControlCenter: false
+  onShowControlCenterChanged: {
+    if (showControlCenter) exclusiveOpen("cc");
+    else isPinned = false; // Force unpin when closing so it fully shrinks down to 36px
+  }
+
   property bool isPinned: false
-  property bool isExpanded: mouseArea.containsMouse || statusCapsule.isHovered || isPinned
+  // Added powerMouseArea.containsMouse so the island doesn't collapse when hovering the power button
+  property bool isExpanded: mouseArea.containsMouse || statusCapsule.isHovered || (typeof powerMouseArea !== "undefined" && powerMouseArea.containsMouse) || isPinned || showControlCenter
   signal toggleControlCenter()
 
   // --- Morph mode ---
@@ -165,6 +189,70 @@ Rectangle {
     onTriggered: clockWidget.showWallpaperMenu = false
   }
 
+  // --- System Status for Alerts ---
+  StatusService { id: sysStatus }
+
+  // --- Battery Alert state ---
+  property bool showBatteryAlert: false
+  property string batteryAlertMode: "charging" // "charging", "unplugged", "low"
+  property Timer batteryAlertTimer: Timer {
+    interval: 2000 // Reduced from 3000ms so it doesn't stay visible for too long
+    onTriggered: clockWidget.showBatteryAlert = false
+  }
+
+  Connections {
+    target: sysStatus
+    function onChargingChanged() {
+      if (clockWidget._ready) {
+        clockWidget.batteryAlertMode = sysStatus.charging ? "charging" : "unplugged"
+        clockWidget.showBatteryAlert = true
+      }
+    }
+    function onBatteryChanged() {
+      if (clockWidget._ready && !sysStatus.charging && sysStatus.battery <= 20) {
+        clockWidget.batteryAlertMode = "low"
+        clockWidget.showBatteryAlert = true
+      }
+    }
+  }
+
+  onShowBatteryAlertChanged: {
+    if (showBatteryAlert) {
+      exclusiveOpen("battery");
+      batteryAlertTimer.restart();
+    }
+  }
+
+  // --- Pomodoro, Movies, System, Tray state ---
+  property bool showPomodoro: false
+  property bool showMovies: false
+  property bool showSys: false
+  property bool showTray: false
+  
+  onShowPomodoroChanged: {
+    if (showPomodoro) {
+      exclusiveOpen("pomodoro");
+    }
+  }
+
+  onShowMoviesChanged: {
+    if (showMovies) {
+      exclusiveOpen("movies");
+    }
+  }
+
+  onShowSysChanged: {
+    if (showSys) {
+      exclusiveOpen("sys");
+    }
+  }
+
+  onShowTrayChanged: {
+    if (showTray) {
+      exclusiveOpen("tray");
+    }
+  }
+
   // --- Notification state ---
   // Set from shell.qml via the latestNotification property binding.
   // When non-null, the island auto-expands to show the Dynamic Island banner.
@@ -185,7 +273,7 @@ Rectangle {
 
   onShowPowerMenuChanged: {
     if (showPowerMenu) {
-      if (showWallpaperMenu) showWallpaperMenu = false;
+      exclusiveOpen("power");
       if (powerMenuTimer) powerMenuTimer.restart();
     }
   }
@@ -201,8 +289,7 @@ Rectangle {
   // --- App launcher lifecycle ---
   onShowAppLauncherChanged: {
     if (showAppLauncher) {
-      if (showPowerMenu) showPowerMenu = false;
-      if (showWallpaperMenu) showWallpaperMenu = false;
+      exclusiveOpen("app");
       if (appLauncherTimer) appLauncherTimer.restart();
     }
   }
@@ -218,8 +305,7 @@ Rectangle {
   // --- Wallpaper menu lifecycle ---
   onShowWallpaperMenuChanged: {
     if (showWallpaperMenu) {
-      if (showPowerMenu) showPowerMenu = false;
-      if (showAppLauncher) showAppLauncher = false;
+      exclusiveOpen("wallpaper");
       if (wallpaperMenuTimer) wallpaperMenuTimer.restart();
       if (wallpaperSvc) wallpaperSvc.rescan();
     }
@@ -275,16 +361,16 @@ Rectangle {
   property bool showAskpass: askpassSvc && askpassSvc.pendingRequest !== null
 
   // Size changes are the core of the Dynamic Island morph.
-  // Regular expanded = 64×540; notification/power = 130×480; app launcher = 240×480; askpass = 200×480; collapsed = 36×auto.
-  height: showAppLauncher ? 240 : (showWallpaperMenu ? 300 : (showAskpass ? 200 : (latestNotificationData || showPowerMenu ? 130 : (isExpanded ? 64 : 36))))
-  width: showWallpaperMenu ? 640 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher ? 480 : (isExpanded ? 540 : (mode !== "default" ? indicatorRow.implicitWidth + 86 : collapsedRow.implicitWidth + 86)))
-  radius: showWallpaperMenu ? 28 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher ? 28 : (isExpanded ? 22 : 18))
+  // Regular expanded = 64×540; CC = auto×540; notification/power = 130×480; app launcher = 240×480; askpass = 200×480; collapsed = 36×auto; pomodoro = 76x380; movies = 180x540; sys = 100x480; battery = 48x220; tray = 120x440
+  height: showControlCenter ? ccItem.implicitHeight + 70 : showAppLauncher ? 240 : (showWallpaperMenu ? 300 : (showAskpass ? 200 : (showMovies ? 180 : (latestNotificationData || showPowerMenu ? 130 : (showTray ? 120 : (showSys ? 100 : (showPomodoro ? 76 : (showBatteryAlert ? 48 : (isExpanded ? 64 : 36)))))))))
+  width: showControlCenter ? 680 : showWallpaperMenu ? 640 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showSys ? 480 : (showMovies ? 540 : (showTray ? 440 : (showPomodoro ? 380 : (showBatteryAlert ? 220 : (isExpanded ? 540 : (mode !== "default" ? indicatorRow.implicitWidth + 86 : collapsedContent.contentWidth + 86)))))))
+  radius: showControlCenter ? 24 : showWallpaperMenu ? 28 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showMovies || showSys || showTray ? 28 : (showBatteryAlert ? 24 : (isExpanded ? 22 : 18)))
   color: Theme.background
 
-  // Elastic morph animation for regular expand/collapse
-  Behavior on height { NumberAnimation { duration: 450; easing.type: Easing.OutBack } }
-  Behavior on width  { NumberAnimation { duration: 450; easing.type: Easing.OutBack } }
-  Behavior on radius { NumberAnimation { duration: 450; easing.type: Easing.OutBack } }
+  // Fluid morph animation for expansion/collapse (Apple-like)
+  Behavior on height { NumberAnimation { duration: 350; easing.type: Easing.OutQuart } }
+  Behavior on width  { NumberAnimation { duration: 350; easing.type: Easing.OutQuart } }
+  Behavior on radius { NumberAnimation { duration: 350; easing.type: Easing.OutQuart } }
 
   MouseArea {
     id: mouseArea
@@ -301,6 +387,25 @@ Rectangle {
         clockWidget.showWallpaperMenu = false;
         return;
       }
+      if (clockWidget.showPomodoro) {
+        clockWidget.showPomodoro = false;
+        return;
+      }
+      if (clockWidget.showMovies) {
+        clockWidget.showMovies = false;
+        return;
+      }
+      if (clockWidget.showSys) {
+        clockWidget.showSys = false;
+        return;
+      }
+      if (clockWidget.showTray) {
+        clockWidget.showTray = false;
+        return;
+      }
+      if (clockWidget.showControlCenter) {
+        return; // Do nothing if they click the background of the control center itself
+      }
       if (clockWidget.showAppLauncher) return;
       if (clockWidget.isExpanded) {
         let mappedPos = mouseArea.mapToItem(expandedContent, mouse.x, mouse.y);
@@ -312,23 +417,39 @@ Rectangle {
   }
 
   // --- Collapsed: clock + cava (default) ---
-  RowLayout {
-    id: collapsedRow
-    anchors.centerIn: parent
-    spacing: media.playing ? 8 : 0
+  Item {
+    id: collapsedContent
+    anchors.fill: parent
 
-    opacity: clockWidget.isExpanded || clockWidget.mode !== "default" ? 0.0 : 1.0
+    property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerMenu || showAppLauncher || showWallpaperMenu || showAskpass || showingNotification
+    opacity: clockWidget.isExpanded || clockWidget.mode !== "default" || anyOverlayActive ? 0.0 : 1.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 200 } }
 
+    property real leftWidth: media.playing ? visualizerContainer.width + 12 : 0
+    property real rightWidth: PomodoroService.sessionState !== "Idle" ? pomodoroRow.implicitWidth + 12 : 0
+    property real maxSide: Math.max(leftWidth, rightWidth)
+    property real contentWidth: collapsedClockText.implicitWidth + maxSide * 2
+
+    Text {
+      id: collapsedClockText
+      anchors.centerIn: parent
+      text: Qt.formatDateTime(clock.date, "h:mm AP")
+      color: Theme.text
+      font { family: "Inter"; pixelSize: 14; weight: 500 }
+    }
+
     Item {
       id: visualizerContainer
-      Layout.alignment: Qt.AlignVCenter
+      anchors.right: collapsedClockText.left
+      anchors.rightMargin: media.playing ? 12 : 0
+      anchors.verticalCenter: parent.verticalCenter
       property real targetWidth: media.playing ? 14 : 0
-      Layout.preferredWidth: targetWidth
-      Layout.preferredHeight: 12
+      width: targetWidth
+      height: 12
       clip: true
 
+      Behavior on anchors.rightMargin { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
       Behavior on targetWidth { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
 
       Row {
@@ -344,10 +465,38 @@ Rectangle {
       }
     }
 
-    Text {
-      text: Qt.formatDateTime(clock.date, "HH:mm")
-      color: Theme.text
-      font { family: "Inter"; pixelSize: 14; weight: 500 }
+    // Live Activity: Pomodoro
+    RowLayout {
+      id: pomodoroRow
+      anchors.left: collapsedClockText.right
+      anchors.leftMargin: PomodoroService.sessionState !== "Idle" ? 12 : 0
+      anchors.verticalCenter: parent.verticalCenter
+      visible: PomodoroService.sessionState !== "Idle"
+      spacing: 6
+      
+      Behavior on anchors.leftMargin { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+
+      Rectangle {
+        Layout.preferredWidth: 2
+        Layout.preferredHeight: 14
+        Layout.alignment: Qt.AlignVCenter
+        radius: 1
+        color: Theme.border
+      }
+
+      Text {
+        text: ""
+        color: PomodoroService.sessionState === "Work" ? Theme.primary : Theme.tertiary
+        font.family: "JetBrainsMono Nerd Font"
+        font.pixelSize: 14
+      }
+      Text {
+        text: PomodoroService.formatTime()
+        color: PomodoroService.sessionState === "Work" ? Theme.primary : Theme.tertiary
+        font.family: "JetBrains Mono"
+        font.pixelSize: 13
+        font.weight: 700
+      }
     }
   }
 
@@ -511,11 +660,14 @@ Rectangle {
   // Visible when expanded with no notification: shows media player, clock, status capsule.
   Item {
     id: expandedContent
-    anchors.fill: parent
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 64
     anchors.leftMargin: 16
     anchors.rightMargin: 16
 
-    opacity: clockWidget.isExpanded && !clockWidget.showingNotification ? 1.0 : 0.0
+    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showingNotification && !clockWidget.showPomodoro && !clockWidget.showMovies && !clockWidget.showSys && !clockWidget.showBatteryAlert && !clockWidget.showTray ? 1.0 : 0.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
@@ -539,7 +691,8 @@ Rectangle {
         spacing: 4
 
         Text {
-          text: Qt.formatDateTime(clock.date, "HH:mm")
+          id: clockText
+          text: Qt.formatDateTime(clock.date, "h:mm AP")
           color: Theme.text
           Layout.alignment: Qt.AlignHCenter
           font { family: "Inter"; pixelSize: 20; weight: 700 }
@@ -557,9 +710,206 @@ Rectangle {
 
     StatusCapsule {
       id: statusCapsule
+      anchors.right: powerButton.left
+      anchors.rightMargin: 12
+      anchors.verticalCenter: parent.verticalCenter
+      onClicked: clockWidget.showControlCenter = !clockWidget.showControlCenter
+    }
+
+    Rectangle {
+      id: powerButton
       anchors.right: parent.right
       anchors.verticalCenter: parent.verticalCenter
-      onClicked: clockWidget.toggleControlCenter()
+      width: 32; height: 32
+      radius: 16
+      color: powerMouseArea.containsMouse ? Theme.surfaceHover : "transparent"
+      Behavior on color { ColorAnimation { duration: 150 } }
+      
+      Text {
+        anchors.centerIn: parent
+        text: "󰐥"
+        color: Theme.error
+        font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
+      }
+      
+      MouseArea {
+        id: powerMouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: clockWidget.showPowerMenu = !clockWidget.showPowerMenu
+      }
+    }
+  }
+
+  // --- Pomodoro expanded overlay ---
+  Item {
+    id: pomodoroExpandedContent
+    anchors.fill: parent
+    anchors.margins: 16
+
+    opacity: clockWidget.showPomodoro ? 1.0 : 0.0
+    visible: opacity > 0.0
+    Behavior on opacity { NumberAnimation { duration: 150 } }
+
+    PomodoroSection {
+      anchors.fill: parent
+    }
+  }
+
+  // --- Movies expanded overlay ---
+  Item {
+    id: moviesExpandedContent
+    anchors.fill: parent
+    anchors.margins: 16
+
+    opacity: clockWidget.showMovies ? 1.0 : 0.0
+    visible: opacity > 0.0
+    Behavior on opacity { NumberAnimation { duration: 150 } }
+
+    MovieSection {
+      anchors.fill: parent
+    }
+  }
+
+  // --- Sys expanded overlay ---
+  Item {
+    id: sysExpandedContent
+    anchors.fill: parent
+    anchors.margins: 16
+
+    opacity: clockWidget.showSys ? 1.0 : 0.0
+    visible: opacity > 0.0
+    Behavior on opacity { NumberAnimation { duration: 150 } }
+
+    SystemUsageSection {
+      anchors.fill: parent
+    }
+  }
+
+  // --- Battery Alert expanded overlay ---
+  Item {
+    id: batteryAlertExpandedContent
+    anchors.fill: parent
+    anchors.margins: 12
+
+    opacity: clockWidget.showBatteryAlert ? 1.0 : 0.0
+    visible: opacity > 0.0
+    Behavior on opacity { NumberAnimation { duration: 150 } }
+
+    RowLayout {
+      anchors.centerIn: parent
+      spacing: 12
+      
+      Item {
+        width: 48; height: 22
+        Layout.alignment: Qt.AlignVCenter
+
+        Rectangle {
+          anchors.left: parent.left
+          anchors.verticalCenter: parent.verticalCenter
+          width: 42; height: 20
+          radius: 6
+          color: "transparent"
+          border.color: Theme.text
+          border.width: 1
+          opacity: 0.4
+        }
+
+        Rectangle {
+          anchors.left: parent.left
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.margins: 3
+          anchors.leftMargin: 3
+          height: 14
+          width: Math.max(0, 36 * (sysStatus.battery / 100))
+          radius: 3
+          color: clockWidget.batteryAlertMode === "charging" ? Theme.primary : (clockWidget.batteryAlertMode === "low" ? Theme.error : Theme.text)
+        }
+
+        Rectangle {
+          anchors.left: parent.left
+          anchors.leftMargin: 43
+          anchors.verticalCenter: parent.verticalCenter
+          width: 4; height: 8
+          radius: 2
+          color: Theme.text
+          opacity: 0.4
+        }
+
+        Text {
+          anchors.centerIn: parent
+          text: "󱐋"
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 13 }
+          visible: clockWidget.batteryAlertMode === "charging"
+          color: Theme.background
+          z: 1
+        }
+      }
+      Text {
+        text: clockWidget.batteryAlertMode === "charging" ? "Charging" : (clockWidget.batteryAlertMode === "low" ? "Battery Low" : "Unplugged")
+        color: Theme.text
+        font.family: "Inter"
+        font.pixelSize: 14
+        font.weight: 600
+      }
+      Text {
+        text: sysStatus.battery + "%"
+        color: clockWidget.batteryAlertMode === "charging" ? Theme.primary : (clockWidget.batteryAlertMode === "low" ? Theme.error : Theme.text)
+        font.family: "Inter"
+        font.pixelSize: 14
+        font.weight: 600
+      }
+    }
+  }
+
+  // --- Tray expanded overlay ---
+  Item {
+    id: trayExpandedContent
+    anchors.fill: parent
+    opacity: clockWidget.showTray ? 1.0 : 0.0
+    visible: opacity > 0.0
+    Behavior on opacity { NumberAnimation { duration: 150 } }
+
+    SystemTraySection {
+      anchors.fill: parent
+    }
+  }
+
+  // --- Control Center expanded overlay ---
+  Item {
+    id: ccExpandedContent
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.margins: 20
+    anchors.topMargin: 64
+    height: Math.max(0, parent.height - 84) // Prevent negative heights during morph which completely breaks the QML rendering engine
+    clip: true // Apple-style smooth unmasking: we clip the perfectly rendered internal layout as the island smoothly morphs!
+
+    opacity: clockWidget.showControlCenter ? 1.0 : 0.0
+    visible: opacity > 0.0
+    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } } // Fades out slightly faster than the morph so it doesn't leave ghost images
+
+    MouseArea {
+      anchors.fill: parent
+      onClicked: {} // Consume clicks so they don't fall through to the background and pin the island
+    }
+
+    ControlCenter {
+      id: ccItem
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: implicitHeight // Instantly snaps to final layout size to prevent jittery recalculations during morph!
+      isOpen: clockWidget.showControlCenter
+      modeSvc: clockWidget.modeSvc
+      storedNotifications: clockWidget.notifService ? clockWidget.notifService.storedNotifications : []
+      doNotDisturb: clockWidget.notifService ? clockWidget.notifService.doNotDisturb : false
+      onDndToggled: (val) => { if (clockWidget.notifService) clockWidget.notifService.doNotDisturb = val; }
+      onDismissNotif: (notifRef) => { if (clockWidget.notifService) clockWidget.notifService.dismissNotif(notifRef); }
+      onClearNotifs: { if (clockWidget.notifService) clockWidget.notifService.clearAll(); }
+      onCloseRequested: clockWidget.showControlCenter = false
     }
   }
 

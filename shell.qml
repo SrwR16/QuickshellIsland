@@ -15,15 +15,15 @@ import "./Widgets/askpass"
 ShellRoot {
   id: root
 
-  property bool isControlCenterOpen: false
-
   NotificationService {
     id: notifService
   }
 
   PanelWindow {
     anchors { top: true; left: true; right: true }
-    implicitHeight: clockItem.height + 20
+    // When a menu is open, expand the Wayland surface to cover the screen to intercept background clicks.
+    // When closed, perfectly hug the island's animated height to prevent Wayland lag or visual clipping.
+    implicitHeight: (clockItem.showControlCenter || clockItem.showPowerMenu || clockItem.showWallpaperMenu || clockItem.showAppLauncher) ? 4000 : clockItem.height + 20
     color: "transparent"
 
     // Fixed exclusive zone — notification banner makes the window taller
@@ -31,26 +31,38 @@ ShellRoot {
     WlrLayershell.exclusiveZone: 56
     // Exclusive keyboard grab when the askpass dialog is open — enables the
     // password field to receive keystrokes without requiring a click first.
-    WlrLayershell.keyboardFocus: clockItem.showAskpass ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: clockItem.showAskpass || clockItem.showControlCenter ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     MouseArea {
       anchors.fill: parent
-      enabled: clockItem.showPowerMenu || clockItem.showWallpaperMenu
+      enabled: clockItem.showPowerMenu || clockItem.showWallpaperMenu || clockItem.showControlCenter || clockItem.showAppLauncher
+
+      // Wayland compositor requires drawn pixels to capture input. 
+      // 0.4% alpha is invisible to the human eye but forces Hyprland to capture all outside clicks.
+      Rectangle {
+        anchors.fill: parent
+        color: "#01000000"
+        visible: parent.enabled
+      }
+
       onClicked: {
         clockItem.showPowerMenu = false;
         clockItem.showWallpaperMenu = false;
+        clockItem.showControlCenter = false;
+        clockItem.isPinned = false;
       }
     }
 
     Clock {
       id: clockItem
+      z: 10
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.top: parent.top
       anchors.topMargin: 10
 
-      opacity: !isControlCenterOpen ? 1 : 0
+      opacity: 1
       visible: opacity > 0
-
+      
       Behavior on opacity {
         NumberAnimation { duration: 250; easing.type: Easing.InOutQuad }
       }
@@ -61,11 +73,13 @@ ShellRoot {
       onNotifDismissed: (notifRef) => notifService.dismissBanner(notifRef)
       onNotifBannerDismissed: (notifRef) => notifService.dismissBanner(notifRef)
 
-      onToggleControlCenter: isControlCenterOpen = true
-
       wallpaperSvc: wallpaperSvc
       modeSvc: modeSvc
       askpassSvc: askpassSvc
+      showControlCenter: clockItem.showControlCenter
+      onShowControlCenterChanged: {
+        if (!showControlCenter) clockItem.showControlCenter = false;
+      }
     }
   }
 
@@ -80,6 +94,10 @@ ShellRoot {
       "  test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; " +
       "  test -f /tmp/qs-mode-cycle && rm /tmp/qs-mode-cycle && out=\"${out}m\"; " +
       "  test -f /tmp/qs-toggle-cc && rm /tmp/qs-toggle-cc && out=\"${out}c\"; " +
+      "  test -f /tmp/qs-pomodoro && rm /tmp/qs-pomodoro && out=\"${out}f\"; " +
+      "  test -f /tmp/qs-movies && rm /tmp/qs-movies && out=\"${out}v\"; " +
+      "  test -f /tmp/qs-sys && rm /tmp/qs-sys && out=\"${out}s\"; " +
+      "  test -f /tmp/qs-tray && rm /tmp/qs-tray && out=\"${out}t\"; " +
       "  if [ -n \"$out\" ]; then echo \"$out\"; fi; " +
       "  sleep 0.05; " +
       "done"
@@ -98,7 +116,15 @@ ShellRoot {
           clockItem.showModeIndicator();
         }
         if (flags.indexOf("c") >= 0)
-          isControlCenterOpen = !isControlCenterOpen;
+          clockItem.showControlCenter = !clockItem.showControlCenter;
+        if (flags.indexOf("f") >= 0)
+          clockItem.showPomodoro = !clockItem.showPomodoro;
+        if (flags.indexOf("v") >= 0)
+          clockItem.showMovies = !clockItem.showMovies;
+        if (flags.indexOf("s") >= 0)
+          clockItem.showSys = !clockItem.showSys;
+        if (flags.indexOf("t") >= 0)
+          clockItem.showTray = !clockItem.showTray;
       }
     }
   }
@@ -180,16 +206,5 @@ ShellRoot {
     sequences: ["Alt+F5"]
     onActivated: { modeSvc.cycleMode(); clockItem.showModeIndicator(); }
     context: Qt.ApplicationShortcut
-  }
-
-  ControlCenter {
-    isOpen: isControlCenterOpen
-    modeSvc: modeSvc
-    storedNotifications: notifService.storedNotifications
-    doNotDisturb: notifService.doNotDisturb
-    onDndToggled: (val) => notifService.doNotDisturb = val
-    onDismissNotif: (notifRef) => notifService.dismissNotif(notifRef)
-    onClearNotifs: notifService.clearAll()
-    onCloseRequested: isControlCenterOpen = false
   }
 }

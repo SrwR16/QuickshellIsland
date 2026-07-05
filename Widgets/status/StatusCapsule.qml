@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Bluetooth
 
 import "../../core"
 
@@ -21,6 +22,16 @@ Rectangle {
     property string connectionType: status.connType
     property bool isHovered: capsuleMouseArea.containsMouse
     signal clicked()
+
+    property var btAdapter: Bluetooth.defaultAdapter
+    property bool btConnected: {
+        if (!btAdapter || !btAdapter.enabled) return false;
+        var devs = btAdapter.devices.values;
+        for (var i = 0; i < devs.length; i++) {
+            if (devs[i].state === BluetoothDeviceState.Connected) return true;
+        }
+        return false;
+    }
 
     StatusService {
         id: status
@@ -46,27 +57,77 @@ Rectangle {
                 : statusCapsule.wifiSignal > 50 ? "󰤥"
                 : statusCapsule.wifiSignal > 25 ? "󰤢"
                 : "󰤟"
-            color: statusCapsule.networkState === "Disconnected" ? Theme.subtext : Theme.primary
+            color: statusCapsule.networkState === "Disconnected" ? Theme.subtext : Theme.text
             font { family: "JetBrainsMono Nerd Font"; pixelSize: 13 }
         }
 
         Text {
-            text: {
-                if (statusCapsule.powerState === "Full") return "󰂅";
-                if (statusCapsule.isCharging) return "󰂄";
-                var p = statusCapsule.batteryPercent;
-                if (p > 80) return "󰁹";
-                if (p > 50) return "󰂀";
-                if (p > 20) return "󰁽";
-                return "󰁺";
-            }
-            color: statusCapsule.batteryPercent > 20 ? Theme.primary : Theme.error
-            font { family: "JetBrainsMono Nerd Font"; pixelSize: 13 }
-        }
-
-        Text {
-            text: statusCapsule.powerState === "Full" || statusCapsule.isCharging ? "AC" : statusCapsule.batteryPercent + "%"
+            visible: statusCapsule.btConnected
+            text: "󰂱"
             color: Theme.text
+            font { family: "JetBrainsMono Nerd Font"; pixelSize: 13 }
+        }
+
+        Item {
+            width: 32; height: 14
+            Layout.alignment: Qt.AlignVCenter
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                width: 25; height: 12
+                radius: 4
+                color: "transparent"
+                border.color: Theme.text
+                border.width: 1
+                opacity: 0.4
+            }
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.margins: 2
+                anchors.leftMargin: 2
+                height: 8
+                // Clamp max width to 21 to prevent overflow bugs if system reports > 100% battery
+                width: Math.max(0, Math.min(21, 21 * (statusCapsule.batteryPercent / 100)))
+                radius: 2
+                color: statusCapsule.isCharging ? Theme.primary : (statusCapsule.batteryPercent <= 20 ? Theme.error : Theme.text)
+            }
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.leftMargin: 26
+                anchors.verticalCenter: parent.verticalCenter
+                width: 2; height: 4
+                radius: 1
+                color: Theme.text
+                opacity: 0.4
+            }
+
+            // Pure geometric '+' sign for charging: 100% immune to missing fonts or broken emojis
+            Item {
+                anchors.centerIn: parent
+                width: 8; height: 8
+                visible: statusCapsule.isCharging
+                z: 1
+                
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 2; height: 8
+                    color: Theme.background
+                }
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 8; height: 2
+                    color: Theme.background
+                }
+            }
+        }
+
+        Text {
+            text: statusCapsule.batteryPercent + "%"
+            color: statusCapsule.batteryPercent <= 20 && !statusCapsule.isCharging ? Theme.error : Theme.text
             font { family: "Inter"; pixelSize: 11; weight: 700 }
         }
     }

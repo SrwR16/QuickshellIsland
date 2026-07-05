@@ -1,0 +1,2 @@
+singleton MovieService MovieService.qml
+MovieSection MovieSection.qml

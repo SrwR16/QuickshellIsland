@@ -15,7 +15,9 @@ Rectangle {
   Layout.fillWidth: true
   Layout.preferredHeight: 56
   radius: 16
-  color: active ? Theme.primary : Theme.surface
+  color: active ? Theme.primary : Theme.surfaceContainer
+  border.color: active ? Theme.primary : Theme.surfaceVariant
+  border.width: 1
 
   Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -26,7 +28,7 @@ Rectangle {
 
     Rectangle {
       width: 32; height: 32; radius: 16
-      color: tile.active ? Theme.primaryFg : Theme.background
+      color: tile.active ? Theme.primaryFg : Theme.surfaceBright
 
       Text {
         anchors.centerIn: parent

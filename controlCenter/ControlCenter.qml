@@ -14,15 +14,13 @@ import QtQuick.Layouts
 import "../Widgets/notifications"
 import "../core"
 
-PanelWindow {
+Item {
     id: controlCenter
     property bool isOpen: false
     visible: isOpen
 
     property string page: "main"
     onIsOpenChanged: if (isOpen) page = "main"
-
-    WlrLayershell.layer: WlrLayer.Overlay
 
     signal closeRequested()
     signal dismissNotif(var notifRef)
@@ -31,16 +29,16 @@ PanelWindow {
     property bool doNotDisturb: false
     property var storedNotifications: []
 
-    exclusionMode: ExclusionMode.Ignore
-
-    anchors {
-        top: true
-        left: true
-        right: true
-        bottom: true
-    }
-
-    color: "transparent"
+    implicitHeight: Math.min(controlCenter.page === "main" ? mainPageHeightHint : 560, 800)
+    
+    property real mainPageHeightHint: 290
+        + (controlCenter.activePlayer ? 160 : 0)
+        + 30
+        + 50
+        + 30
+        + 80
+        + 60
+        + ((controlCenter.storedNotifications?.length ?? 0) > 0 ? 20: 0)
 
     // --- Audio (Pipewire) ---
     property PwNode audioSink: Pipewire.defaultAudioSink
@@ -615,50 +613,24 @@ PanelWindow {
     }
 
     // ---- Inline components ----
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            if (controlCenter.page !== "main") controlCenter.page = "main";
-            else controlCenter.closeRequested();
-        }
-    }
+
 
     // ---- Panel ----
-    Rectangle {
+    Item {
         id: panel
-        width: 540
-        height: Math.min(controlCenter.page === "main" ? mainPageHeightHint : 560, parent.height - 20)
-
-        property real mainPageHeightHint: 290
-            + (controlCenter.activePlayer ? 160 : 0)
-            + 30
-            + 50
-            + 30
-            + 80
-            + 60
-            + ((controlCenter.storedNotifications?.length ?? 0) > 0 ? 20: 0)
-
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        anchors.topMargin: 10
-
-        color: Theme.background
-        radius: 24
-        border.color: Theme.surface
-        border.width: 2
+        anchors.fill: parent
         clip: true
-
-        Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
 
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 20
             spacing: 12
 
-            // ---- HEADER ----
+            // ---- HEADER (Hidden on Main Page) ----
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
+                visible: controlCenter.page !== "main"
 
                 Text {
                     text: "󰅁"
@@ -677,12 +649,12 @@ PanelWindow {
                 }
 
                 Text {
-                text: controlCenter.page === "wifi" ? "Wi-Fi"
-                    : controlCenter.page === "bluetooth" ? "Bluetooth"
-                    : controlCenter.page === "audio" ? "Audio"
-                    : controlCenter.page === "nightlight" ? "Night Light"
-                    : controlCenter.page === "mode" ? "Performance Mode"
-                    : "Control Center"
+                    text: controlCenter.page === "wifi" ? "Wi-Fi"
+                        : controlCenter.page === "bluetooth" ? "Bluetooth"
+                        : controlCenter.page === "audio" ? "Audio"
+                        : controlCenter.page === "nightlight" ? "Night Light"
+                        : controlCenter.page === "mode" ? "Performance Mode"
+                        : ""
                     color: Theme.text
                     font { family: "Inter"; pixelSize: 15; weight: 700 }
                     Layout.fillWidth: true

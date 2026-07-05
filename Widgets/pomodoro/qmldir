@@ -1,0 +1,2 @@
+singleton PomodoroService PomodoroService.qml
+PomodoroSection PomodoroSection.qml

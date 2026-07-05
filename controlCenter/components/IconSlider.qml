@@ -15,7 +15,9 @@ Item {
     id: track
     anchors.fill: parent
     radius: 20
-    color: Theme.surface
+    color: Theme.surfaceContainer
+    border.color: Theme.surfaceVariant
+    border.width: 1
 
     Rectangle {
       width: Math.max(40, parent.width * slider.value)

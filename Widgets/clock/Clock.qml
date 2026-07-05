@@ -18,6 +18,7 @@ Item {
   property alias wallpaperSvc: mainWidget.wallpaperSvc
   property alias modeSvc: mainWidget.modeSvc
   property alias askpassSvc: mainWidget.askpassSvc
+  property alias showControlCenter: mainWidget.showControlCenter
 
   function showModeIndicator() { mainWidget.showModeIndicator(); }
 

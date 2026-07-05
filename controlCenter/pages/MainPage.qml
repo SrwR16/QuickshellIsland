@@ -134,7 +134,9 @@ ColumnLayout {
     radius: 18
     clip: true
     visible: activePlayer !== null
-    color: Theme.surface
+    color: Theme.surfaceContainer
+    border.color: Theme.surfaceVariant
+    border.width: 1
 
     Image {
       anchors.fill: parent
