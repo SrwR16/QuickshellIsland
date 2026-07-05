@@ -15,10 +15,15 @@ Item {
   property alias showAskpass: mainWidget.showAskpass
   property alias showAppLauncher: mainWidget.showAppLauncher
   property alias showWallpaperMenu: mainWidget.showWallpaperMenu
+  property alias showMovies: mainWidget.showMovies
+  property alias showPomodoro: mainWidget.showPomodoro
+  property alias showSys: mainWidget.showSys
+  property alias showTray: mainWidget.showTray
   property alias wallpaperSvc: mainWidget.wallpaperSvc
   property alias modeSvc: mainWidget.modeSvc
   property alias askpassSvc: mainWidget.askpassSvc
   property alias showControlCenter: mainWidget.showControlCenter
+  property alias anyOverlayActive: mainWidget.anyOverlayActive
 
   function showModeIndicator() { mainWidget.showModeIndicator(); }
 

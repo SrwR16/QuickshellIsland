@@ -11,10 +11,11 @@ import "./Widgets/mode"
 import "./core"
 import "./Widgets/wallpaper"
 import "./Widgets/askpass"
+import "./Widgets/productivity"
 
 ShellRoot {
   id: root
-
+  
   NotificationService {
     id: notifService
   }
@@ -23,7 +24,7 @@ ShellRoot {
     anchors { top: true; left: true; right: true }
     // When a menu is open, expand the Wayland surface to cover the screen to intercept background clicks.
     // When closed, perfectly hug the island's animated height to prevent Wayland lag or visual clipping.
-    implicitHeight: (clockItem.showControlCenter || clockItem.showPowerMenu || clockItem.showWallpaperMenu || clockItem.showAppLauncher) ? 4000 : clockItem.height + 20
+    implicitHeight: (clockItem.anyOverlayActive || clockItem.showControlCenter) ? 4000 : clockItem.height + 20
     color: "transparent"
 
     // Fixed exclusive zone — notification banner makes the window taller
@@ -35,7 +36,7 @@ ShellRoot {
 
     MouseArea {
       anchors.fill: parent
-      enabled: clockItem.showPowerMenu || clockItem.showWallpaperMenu || clockItem.showControlCenter || clockItem.showAppLauncher
+      enabled: clockItem.anyOverlayActive || clockItem.showControlCenter
 
       // Wayland compositor requires drawn pixels to capture input. 
       // 0.4% alpha is invisible to the human eye but forces Hyprland to capture all outside clicks.
@@ -49,7 +50,12 @@ ShellRoot {
         clockItem.showPowerMenu = false;
         clockItem.showWallpaperMenu = false;
         clockItem.showControlCenter = false;
+        clockItem.showMovies = false;
+        clockItem.showPomodoro = false;
+        clockItem.showSys = false;
+        clockItem.showTray = false;
         clockItem.isPinned = false;
+        clockItem.showProductivity = false;
       }
     }
 
@@ -94,6 +100,7 @@ ShellRoot {
       "  test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; " +
       "  test -f /tmp/qs-mode-cycle && rm /tmp/qs-mode-cycle && out=\"${out}m\"; " +
       "  test -f /tmp/qs-toggle-cc && rm /tmp/qs-toggle-cc && out=\"${out}c\"; " +
+      "  test -f /tmp/qs-productivity && rm /tmp/qs-productivity && out=\"${out}d\"; " +
       "  test -f /tmp/qs-pomodoro && rm /tmp/qs-pomodoro && out=\"${out}f\"; " +
       "  test -f /tmp/qs-movies && rm /tmp/qs-movies && out=\"${out}v\"; " +
       "  test -f /tmp/qs-sys && rm /tmp/qs-sys && out=\"${out}s\"; " +
@@ -117,6 +124,8 @@ ShellRoot {
         }
         if (flags.indexOf("c") >= 0)
           clockItem.showControlCenter = !clockItem.showControlCenter;
+        if (flags.indexOf("d") >= 0)
+          root.showProductivity = !root.showProductivity;
         if (flags.indexOf("f") >= 0)
           clockItem.showPomodoro = !clockItem.showPomodoro;
         if (flags.indexOf("v") >= 0)

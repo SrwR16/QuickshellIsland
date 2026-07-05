@@ -4,7 +4,9 @@ import QtQuick
 Item {
   id: root
   property string sessionState: "Idle" // "Idle", "Work", "Break"
-  property int totalTime: 25 * 60
+  property int workDuration: 25 * 60
+  property int breakDuration: 5 * 60
+  property int totalTime: workDuration
   property int timeRemaining: 0
   property real progress: 0
   property bool isPaused: false
@@ -26,7 +28,7 @@ Item {
 
   function startWork() {
     sessionState = "Work"
-    totalTime = 25 * 60
+    totalTime = workDuration
     timeRemaining = totalTime
     progress = 0
     isPaused = false
@@ -34,7 +36,7 @@ Item {
 
   function startBreak() {
     sessionState = "Break"
-    totalTime = 5 * 60
+    totalTime = breakDuration
     timeRemaining = totalTime
     progress = 0
     isPaused = false
@@ -61,7 +63,11 @@ Item {
   }
 
   function formatTime() {
-    if (sessionState === "Idle") return "25:00"
+    if (sessionState === "Idle") {
+      let mIdle = Math.floor(workDuration / 60)
+      let sIdle = workDuration % 60
+      return mIdle + ":" + (sIdle < 10 ? "0" : "") + sIdle
+    }
     let m = Math.floor(timeRemaining / 60)
     let s = timeRemaining % 60
     return m + ":" + (s < 10 ? "0" : "") + s
