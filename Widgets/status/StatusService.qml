@@ -43,7 +43,8 @@ QtObject {
       onStreamFinished: {
         var lines = this.text.trim().split("\n");
         if (lines.length >= 5) {
-          battery = parseInt(lines[0]) || 0;
+          var b = parseInt(lines[0]);
+          if (!isNaN(b) && b > 0) battery = b;
           powerStatus = lines[1].trim();
           charging = powerStatus === "Charging" || powerStatus === "Full";
           wifi = lines[2].trim() || "Disconnected";
