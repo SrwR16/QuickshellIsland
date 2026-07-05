@@ -42,7 +42,7 @@ ColumnLayout {
         Image {
           anchors.centerIn: parent
           width: 32; height: 32
-          source: model.icon
+          source: model.icon || ""
           fillMode: Image.PreserveAspectFit
         }
       }
