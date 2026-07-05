@@ -3,12 +3,13 @@ import Quickshell.Io
 import QtQuick
 
 QtObject {
-  property bool playing: false
+  property string playbackStatus: "Stopped"
+  property bool playing: playbackStatus === "Playing"
 
   readonly property string mediaState: {
-    if (!playing) return "Idle";
+    if (playbackStatus === "Stopped" || playbackStatus === "") return "Idle";
     if (title === "No Media") return "Loading";
-    return "Playing";
+    return playbackStatus; // "Playing" or "Paused"
   }
 
   property string title: "No Media"
@@ -28,7 +29,7 @@ QtObject {
 
     stdout: SplitParser {
       onRead: (data) => {
-        playing = data.trim() === "Playing"
+        playbackStatus = data.trim();
         metaTimer.restart();
       }
     }

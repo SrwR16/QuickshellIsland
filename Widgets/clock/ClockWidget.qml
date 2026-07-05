@@ -39,8 +39,9 @@ Rectangle {
   }
 
   property bool isPinned: false
+  property bool hasMedia: media.mediaState !== "Idle"
   // Added powerMouseArea.containsMouse so the island doesn't collapse when hovering the power button
-  property bool isExpanded: mouseArea.containsMouse || statusCapsule.isHovered || (typeof powerMouseArea !== "undefined" && powerMouseArea.containsMouse) || isPinned || showControlCenter
+  property bool isExpanded: mouseArea.containsMouse || statusCapsule.isHovered || (typeof mediaSectionItem !== "undefined" && mediaSectionItem.isHovered) || (typeof powerMouseArea !== "undefined" && powerMouseArea.containsMouse) || isPinned || showControlCenter
   signal toggleControlCenter()
 
   // --- Morph mode ---
@@ -715,6 +716,7 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
     MediaSection {
+      id: mediaSectionItem
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
       trackTitle: media.title
