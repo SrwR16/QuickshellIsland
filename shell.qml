@@ -52,6 +52,40 @@ ShellRoot {
         anchors { top: true; left: true; right: true }
         
         implicitHeight: Screen.height
+        // Keep the mask full screen while animating to prevent 60fps input region updates
+        // which cause Hyprland to jitter. Shrink the mask to the island only after animations finish.
+        property bool needsLargeMask: overlayRoot.anyActive
+        
+        Timer {
+            id: maskTimer
+            interval: 400
+            running: !overlayRoot.anyActive
+            onTriggered: mainWindow.needsLargeMask = false
+        }
+        
+        Connections {
+            target: overlayRoot
+            function onAnyActiveChanged() {
+                if (overlayRoot.anyActive) {
+                    maskTimer.stop()
+                    mainWindow.needsLargeMask = true
+                } else {
+                    maskTimer.restart()
+                }
+            }
+        }
+        
+        mask: needsLargeMask ? fullMask : islandMask
+        
+        Region {
+            id: fullMask
+            Region { item: overlayRoot }
+        }
+        
+        Region {
+            id: islandMask
+            Region { item: overlayRoot.island }
+        }
         
         color: "transparent"
         WlrLayershell.exclusiveZone: 56
