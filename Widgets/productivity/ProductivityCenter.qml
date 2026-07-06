@@ -10,9 +10,9 @@ Item {
     signal requestClose()
     
     visible: isOpen
-    implicitHeight: page === "time" ? 400 : 380
+    implicitHeight: 450
 
-    property int activeMode: 0 // 0: Timer, 1: Alarm, 2: Pomodoro
+    property int activeMode: 0 // 0: Timer, 1: Stopwatch, 2: Pomodoro
 
     Item {
         anchors.fill: parent
@@ -56,7 +56,7 @@ Item {
                 id: tabBar
                 anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: 280
+                width: 340
                 height: 36
                 radius: 10
                 color: Theme.surfaceLight
@@ -108,7 +108,7 @@ Item {
                     z: 1
 
                     Repeater {
-                        model: ["Timer", "Alarm", "Pomodoro"]
+                        model: ["Timer", "Stopwatch", "Pomodoro"]
                         Item {
                             width: (tabBar.width - 4) / 3
                             height: parent.height
@@ -147,7 +147,7 @@ Item {
                     visible: prodCenter.activeMode === 1
                     opacity: visible ? 1.0 : 0.0
                     Behavior on opacity { NumberAnimation { duration: 250 } }
-                    AlarmWidget { anchors.fill: parent }
+                    StopwatchWidget { anchors.fill: parent }
                 }
                 Item {
                     anchors.fill: parent

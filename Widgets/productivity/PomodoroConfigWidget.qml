@@ -110,13 +110,17 @@ Item {
         // Controls
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 24
+            spacing: 20
 
             Rectangle {
-                width: 48; height: 48; radius: 12
+                width: 50; height: 50; radius: 10
                 color: Theme.surfaceLight
                 border.width: 1; border.color: Theme.surfaceVariant
-                Text { anchors.centerIn: parent; text: "󰑐"; color: Theme.text; font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 18 }
+                Text { 
+                    anchors.centerIn: parent
+                    text: "󰑎" // Reset
+                    color: Theme.text; font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 18 
+                }
                 MouseArea {
                     anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                     onClicked: {
@@ -129,15 +133,16 @@ Item {
             }
 
             Rectangle {
-                width: 64; height: 64; radius: 16; color: Theme.primary
-                Text { 
+                width: 64; height: 64; radius: 16
+                color: Theme.primary
+                Text {
                     anchors.centerIn: parent
                     text: root.running ? "󰏤" : "󰐊"
                     color: Theme.onPrimary; font { family: "JetBrainsMono Nerd Font"; pixelSize: 28 }
                     anchors.horizontalCenterOffset: root.running ? 0 : 2
                 }
-                MouseArea { 
-                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor;
+                MouseArea {
+                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                     onClicked: root.running = !root.running
                 }
             }
