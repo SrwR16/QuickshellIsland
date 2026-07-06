@@ -467,7 +467,10 @@ Rectangle {
   // --- Collapsed: clock + cava (default) ---
   Item {
     id: collapsedContent
-    anchors.fill: parent
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 36
 
     opacity: clockWidget.isExpanded || clockWidget.mode !== "default" || clockWidget.anyOverlayActive ? 0.0 : 1.0
     visible: opacity > 0.0
@@ -497,7 +500,6 @@ Rectangle {
       clip: true
 
       Behavior on anchors.rightMargin { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-      Behavior on targetWidth { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
 
       Row {
         anchors.right: parent.right
@@ -558,7 +560,6 @@ Rectangle {
       clip: true
 
       Behavior on anchors.leftMargin { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-      Behavior on targetWidth { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
 
       Row {
         id: privacyRow

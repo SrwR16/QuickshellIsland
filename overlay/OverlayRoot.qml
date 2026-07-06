@@ -91,7 +91,7 @@ Item {
     Process {
         id: ipcChecker
         running: true
-        command: ["sh", "-c",
+        command: ["stdbuf", "-oL", "sh", "-c",
             "while true; do " +
             "  out=''; " +
             "  test -f /tmp/qs-power-menu && rm /tmp/qs-power-menu && out=\"${out}p\"; " +

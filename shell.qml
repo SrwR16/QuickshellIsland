@@ -51,30 +51,7 @@ ShellRoot {
         id: mainWindow
         anchors { top: true; left: true; right: true }
         
-        // Keep the window large while animating to avoid stutter.
-        // Shrink it 400ms after all overlays close so clicks can pass through to the desktop.
-        property bool needsLargeWindow: overlayRoot.anyActive
-        
-        Timer {
-            id: shrinkTimer
-            interval: 400
-            running: !overlayRoot.anyActive
-            onTriggered: mainWindow.needsLargeWindow = false
-        }
-        
-        Connections {
-            target: overlayRoot
-            function onAnyActiveChanged() {
-                if (overlayRoot.anyActive) {
-                    shrinkTimer.stop()
-                    mainWindow.needsLargeWindow = true
-                } else {
-                    shrinkTimer.restart()
-                }
-            }
-        }
-
-        implicitHeight: needsLargeWindow ? 1080 : overlayRoot.islandHeight + 20
+        implicitHeight: Screen.height
         
         color: "transparent"
         WlrLayershell.exclusiveZone: 56
