@@ -288,11 +288,11 @@ Item {
         let cacheObj = { moviesLastFetch: window.trendingMoviesLastFetch, tvLastFetch: window.trendingTvLastFetch, movies: [], tv: [] }
         for (let i = 0; i < cachedTrendingMovies.count; i++) {
             let m = cachedTrendingMovies.get(i)
-            cacheObj.movies.push({ imdbId: m.imdbId, title: m.title, poster: m.poster, type: m.type, year: m.year, rating: m.rating || 0, popularity: i })
+            cacheObj.movies.push({ imdbId: m.imdbId, title: m.title, poster: m.poster, type: m.type, year: m.year, rating: String(m.rating || 0), popularity: i })
         }
         for (let i = 0; i < cachedTrendingTv.count; i++) {
             let t = cachedTrendingTv.get(i)
-            cacheObj.tv.push({ imdbId: t.imdbId, title: t.title, poster: t.poster, type: t.type, year: t.year, rating: t.rating || 0, popularity: i })
+            cacheObj.tv.push({ imdbId: t.imdbId, title: t.title, poster: t.poster, type: t.type, year: t.year, rating: String(t.rating || 0), popularity: i })
         }
         saveJsonToCache("qs_trending_cache.json", cacheObj)
     }
@@ -639,7 +639,7 @@ Item {
                                 poster: item.poster || item.posterShape || item.background || item.logo || "",
                                 type: isMovie ? "movie" : "tv",
                                 year: item.releaseInfo || "N/A",
-                                rating: item.imdbRating || 0,
+                                rating: String(item.imdbRating || 0),
                                 popularity: i
                             }
                             rawItems.push(entry)
@@ -691,7 +691,7 @@ Item {
             if (!item.id) continue
             searchResults.append({
                 imdbId: item.id, title: item.name || "Unknown", poster: item.poster || "",
-                type: item.type === "series" ? "tv" : "movie", year: item.releaseInfo || "N/A", rating: item.imdbRating || 0
+                type: item.type === "series" ? "tv" : "movie", year: item.releaseInfo || "N/A", rating: String(item.imdbRating || 0)
             })
         }
         Qt.callLater(function() {

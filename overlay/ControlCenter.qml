@@ -632,20 +632,20 @@ Item {
                 spacing: 8
                 visible: controlCenter.page !== "main"
 
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -8
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (controlCenter.page !== "main") controlCenter.page = "main";
+                        else controlCenter.closeRequested();
+                    }
+                }
+
                 Text {
                     text: "󰅁"
                     color: Theme.text
                     font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        anchors.margins: -8
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (controlCenter.page !== "main") controlCenter.page = "main";
-                            else controlCenter.closeRequested();
-                        }
-                    }
                 }
 
                 Text {

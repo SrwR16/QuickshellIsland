@@ -34,7 +34,7 @@ Item {
                   id: m.id, 
                   title: m.name, 
                   poster: m.poster, 
-                  rating: m.imdbRating || 0, 
+                  rating: String(m.imdbRating || 0), 
                   year: m.releaseInfo || "",
                   description: m.description || "No description available."
                 })
@@ -69,7 +69,7 @@ Item {
                   id: m.id, 
                   title: m.name, 
                   poster: m.poster, 
-                  rating: m.imdbRating || 0, 
+                  rating: String(m.imdbRating || 0), 
                   year: m.releaseInfo || "",
                   description: m.description || "No description available."
                 })
