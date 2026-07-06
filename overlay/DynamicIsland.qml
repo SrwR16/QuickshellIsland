@@ -87,43 +87,12 @@ Rectangle {
   }
 
   // --- Combined polling: brightness, caps lock, num lock, kbd backlight ---
-  property real brightness: 0
-  property bool capsLock: false
-  property bool numLock: false
-  property real kbdBrightness: 0
-
-  property Process pollProc: Process {
-    command: [
-      "sh", "-c",
-      "while true; do " +
-      "  b=$(brightnessctl -m 2>/dev/null | head -1 | cut -d, -f4 | tr -d '%' || echo 0); " +
-      "  c=$(hyprctl devices -j 2>/dev/null | grep -q '\"capsLock\": true' && echo 1 || echo 0); " +
-      "  n=$(hyprctl devices -j 2>/dev/null | grep -q '\"numLock\": true' && echo 1 || echo 0); " +
-      "  k=$(brightnessctl -d '*kbd_backlight*' -m 2>/dev/null | head -1 | cut -d, -f4 | tr -d '%' || echo 0); " +
-      "  echo \"b=$b\"; echo \"c=$c\"; echo \"n=$n\"; echo \"k=$k\"; " +
-      "  sleep 0.05; " +
-      "done"
-    ]
-    running: true
-    stdout: SplitParser {
-      onRead: (data) => {
-        var line = data.trim();
-        if (line.length < 2 || line.charAt(1) !== '=') return;
-        var val = line.substring(2);
-        if (line.charAt(0) === 'b') {
-          var pct = parseInt(val);
-          if (!isNaN(pct)) clockWidget.brightness = Math.max(0, Math.min(1, pct / 100));
-        } else if (line.charAt(0) === 'c') {
-          clockWidget.capsLock = val.trim() === "1";
-        } else if (line.charAt(0) === 'n') {
-          clockWidget.numLock = val.trim() === "1";
-        } else if (line.charAt(0) === 'k') {
-          var kpct = parseInt(val);
-          if (!isNaN(kpct)) clockWidget.kbdBrightness = Math.max(0, Math.min(1, kpct / 100));
-        }
-      }
-    }
-  }
+  property QtObject hwMonitor
+  
+  property real brightness: hwMonitor ? hwMonitor.brightness : 0
+  property bool capsLock: hwMonitor ? hwMonitor.capsLock : false
+  property bool numLock: hwMonitor ? hwMonitor.numLock : false
+  property real kbdBrightness: hwMonitor ? hwMonitor.kbdBrightness : 0
 
   onKbdBrightnessChanged: {
     if (_ready && !clockWidget.isExpanded) {
@@ -378,40 +347,72 @@ Rectangle {
   property bool showAskpass: askpassSvc && askpassSvc.pendingRequest !== null
 
   // Size changes are the core of the Dynamic Island morph.
-  height: showProductivity ? prodItem.implicitHeight + 70 
-        : showControlCenter ? ccItem.implicitHeight + 70 
-        : showAppLauncher ? 240 
-        : showWallpaperMenu ? 300 
-        : showAskpass ? 200 
-        : showMovies ? 540 
-        : showVpn ? 200 
-        : (latestNotificationData || showPowerMenu) ? 130 
-        : showTray ? 120 
-        : showSys ? 100 
-        : showPomodoro ? 76 
-        : showBatteryAlert ? 48 
-        : isExpanded ? 64 
-        : 36
+  height: isExpanded ? 64 : 36
+  width: isExpanded ? 540 : (mode !== "default") ? indicatorRow.implicitWidth + 32 : collapsedContent.contentWidth + 86
+  radius: isExpanded ? 22 : 18
 
-  width: showProductivity ? 540 
-       : showControlCenter ? 680 
-       : showWallpaperMenu ? 640 
-       : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showSys) ? 480 
-       : showMovies ? 540 
-       : showTray ? 440 
-       : showPomodoro ? 380 
-       : showBatteryAlert ? 220 
-       : isExpanded ? 540 
-       : (mode !== "default") ? indicatorRow.implicitWidth + 32 
-       : collapsedContent.contentWidth + 86
-
-  radius: showProductivity ? 28 
-        : showControlCenter ? 24 
-        : showWallpaperMenu ? 28 
-        : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showMovies || showSys || showTray) ? 28 
-        : showBatteryAlert ? 24 
-        : isExpanded ? 22 
-        : 18
+  states: [
+    State {
+      name: "productivity"
+      when: clockWidget.showProductivity
+      PropertyChanges { target: clockWidget; height: typeof prodLoader !== "undefined" && prodLoader.item ? prodLoader.item.implicitHeight + 70 : 800; width: 540; radius: 28 }
+    },
+    State {
+      name: "controlCenter"
+      when: clockWidget.showControlCenter
+      PropertyChanges { target: clockWidget; height: typeof ccLoader !== "undefined" && ccLoader.item ? ccLoader.item.implicitHeight + 70 : 870; width: 680; radius: 24 }
+    },
+    State {
+      name: "appLauncher"
+      when: clockWidget.showAppLauncher
+      PropertyChanges { target: clockWidget; height: 240; width: 480; radius: 28 }
+    },
+    State {
+      name: "wallpaperMenu"
+      when: clockWidget.showWallpaperMenu
+      PropertyChanges { target: clockWidget; height: 300; width: 640; radius: 28 }
+    },
+    State {
+      name: "askpass"
+      when: clockWidget.showAskpass
+      PropertyChanges { target: clockWidget; height: 200; width: 480; radius: 28 }
+    },
+    State {
+      name: "movies"
+      when: clockWidget.showMovies
+      PropertyChanges { target: clockWidget; height: 540; width: 540; radius: 28 }
+    },
+    State {
+      name: "vpn"
+      when: clockWidget.showVpn
+      PropertyChanges { target: clockWidget; height: 200; width: 480; radius: 28 }
+    },
+    State {
+      name: "notificationOrPower"
+      when: clockWidget.latestNotificationData || clockWidget.showPowerMenu
+      PropertyChanges { target: clockWidget; height: 130; width: 480; radius: 28 }
+    },
+    State {
+      name: "tray"
+      when: clockWidget.showTray
+      PropertyChanges { target: clockWidget; height: 120; width: 440; radius: 28 }
+    },
+    State {
+      name: "sys"
+      when: clockWidget.showSys
+      PropertyChanges { target: clockWidget; height: 100; width: 480; radius: 28 }
+    },
+    State {
+      name: "pomodoro"
+      when: clockWidget.showPomodoro
+      PropertyChanges { target: clockWidget; height: 76; width: 380; radius: 28 }
+    },
+    State {
+      name: "batteryAlert"
+      when: clockWidget.showBatteryAlert
+      PropertyChanges { target: clockWidget; height: 48; width: 220; radius: 24 }
+    }
+  ]
 
   color: Theme.background
 
@@ -950,8 +951,14 @@ Rectangle {
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
-    MovieSection {
+    Loader {
+      id: movieLoader
       anchors.fill: parent
+      active: clockWidget.showMovies || opacity > 0.0
+      sourceComponent: Component {
+        MovieSection {
+        }
+      }
     }
   }
 
@@ -1079,20 +1086,25 @@ Rectangle {
       onClicked: {} // Consume clicks so they don't fall through to the background and pin the island
     }
 
-    ControlCenter {
-      id: ccItem
+    Loader {
+      id: ccLoader
       anchors.top: parent.top
       anchors.left: parent.left
       anchors.right: parent.right
-      height: implicitHeight // Instantly snaps to final layout size to prevent jittery recalculations during morph!
-      isOpen: clockWidget.showControlCenter
-      modeSvc: clockWidget.modeSvc
-      storedNotifications: clockWidget.notifService ? clockWidget.notifService.storedNotifications : []
-      doNotDisturb: clockWidget.notifService ? clockWidget.notifService.doNotDisturb : false
-      onDndToggled: (val) => { if (clockWidget.notifService) clockWidget.notifService.doNotDisturb = val; }
-      onDismissNotif: (notifRef) => { if (clockWidget.notifService) clockWidget.notifService.dismissNotif(notifRef); }
-      onClearNotifs: { if (clockWidget.notifService) clockWidget.notifService.clearAll(); }
-      onCloseRequested: clockWidget.showControlCenter = false
+      active: clockWidget.showControlCenter || opacity > 0.0
+      sourceComponent: Component {
+        ControlCenter {
+          height: implicitHeight // Instantly snaps to final layout size to prevent jittery recalculations during morph!
+          isOpen: clockWidget.showControlCenter
+          modeSvc: clockWidget.modeSvc
+          storedNotifications: clockWidget.notifService ? clockWidget.notifService.storedNotifications : []
+          doNotDisturb: clockWidget.notifService ? clockWidget.notifService.doNotDisturb : false
+          onDndToggled: (val) => { if (clockWidget.notifService) clockWidget.notifService.doNotDisturb = val; }
+          onDismissNotif: (notifRef) => { if (clockWidget.notifService) clockWidget.notifService.dismissNotif(notifRef); }
+          onClearNotifs: { if (clockWidget.notifService) clockWidget.notifService.clearAll(); }
+          onCloseRequested: clockWidget.showControlCenter = false
+        }
+      }
     }
   }
 
@@ -1116,15 +1128,20 @@ Rectangle {
       onClicked: {} // Consume clicks
     }
 
-    ProductivityCenter {
-      id: prodItem
+    Loader {
+      id: prodLoader
       anchors.top: parent.top
       anchors.left: parent.left
       anchors.right: parent.right
-      height: implicitHeight
-      isOpen: clockWidget.showProductivity
-      page: clockWidget.productivityPage
-      onRequestClose: clockWidget.showProductivity = false
+      active: clockWidget.showProductivity || opacity > 0.0
+      sourceComponent: Component {
+        ProductivityCenter {
+          height: implicitHeight
+          isOpen: clockWidget.showProductivity
+          page: clockWidget.productivityPage
+          onRequestClose: clockWidget.showProductivity = false
+        }
+      }
     }
   }
 

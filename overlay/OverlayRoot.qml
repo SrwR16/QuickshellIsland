@@ -21,6 +21,7 @@ Item {
     AskpassService { id: askpassSvc }
     PrivacyService { id: privacySvc }
     VpnService { id: vpnSvc }
+    HardwareMonitor { id: hwMonitor }
 
     // Transparent background interceptor for closing menus when clicking outside
     MouseArea {
@@ -66,6 +67,7 @@ Item {
         askpassSvc: askpassSvc
         privacySvc: privacySvc
         vpnSvc: vpnSvc
+        hwMonitor: hwMonitor
     }
 
     // Embed Search (formerly AppLauncher) directly in the same scene graph
