@@ -347,69 +347,73 @@ Rectangle {
   property bool showAskpass: askpassSvc && askpassSvc.pendingRequest !== null
 
   // Size changes are the core of the Dynamic Island morph.
-  height: isExpanded ? 64 : 36
-  width: isExpanded ? 540 : (mode !== "default") ? indicatorRow.implicitWidth + 32 : collapsedContent.contentWidth + 86
-  radius: isExpanded ? 22 : 18
+  property string morphState: showProductivity ? "productivity" 
+                            : showControlCenter ? "controlCenter" 
+                            : showAppLauncher ? "appLauncher" 
+                            : showWallpaperMenu ? "wallpaperMenu" 
+                            : showAskpass ? "askpass" 
+                            : showMovies ? "movies" 
+                            : showVpn ? "vpn" 
+                            : (latestNotificationData || showPowerMenu) ? "notificationOrPower" 
+                            : showTray ? "tray" 
+                            : showSys ? "sys" 
+                            : showPomodoro ? "pomodoro" 
+                            : showBatteryAlert ? "batteryAlert" 
+                            : "default"
+
+  state: morphState
 
   states: [
     State {
+      name: "default"
+      PropertyChanges { target: clockWidget; height: isExpanded ? 64 : 36; width: isExpanded ? 540 : (mode !== "default") ? indicatorRow.implicitWidth + 32 : collapsedContent.contentWidth + 86; radius: isExpanded ? 22 : 18 }
+    },
+    State {
       name: "productivity"
-      when: clockWidget.showProductivity
       PropertyChanges { target: clockWidget; height: typeof prodLoader !== "undefined" && prodLoader.item ? prodLoader.item.implicitHeight + 70 : 800; width: 540; radius: 28 }
     },
     State {
       name: "controlCenter"
-      when: clockWidget.showControlCenter
       PropertyChanges { target: clockWidget; height: typeof ccLoader !== "undefined" && ccLoader.item ? ccLoader.item.implicitHeight + 70 : 870; width: 680; radius: 24 }
     },
     State {
       name: "appLauncher"
-      when: clockWidget.showAppLauncher
       PropertyChanges { target: clockWidget; height: 240; width: 480; radius: 28 }
     },
     State {
       name: "wallpaperMenu"
-      when: clockWidget.showWallpaperMenu
       PropertyChanges { target: clockWidget; height: 300; width: 640; radius: 28 }
     },
     State {
       name: "askpass"
-      when: clockWidget.showAskpass
       PropertyChanges { target: clockWidget; height: 200; width: 480; radius: 28 }
     },
     State {
       name: "movies"
-      when: clockWidget.showMovies
       PropertyChanges { target: clockWidget; height: 540; width: 540; radius: 28 }
     },
     State {
       name: "vpn"
-      when: clockWidget.showVpn
       PropertyChanges { target: clockWidget; height: 200; width: 480; radius: 28 }
     },
     State {
       name: "notificationOrPower"
-      when: clockWidget.latestNotificationData || clockWidget.showPowerMenu
       PropertyChanges { target: clockWidget; height: 130; width: 480; radius: 28 }
     },
     State {
       name: "tray"
-      when: clockWidget.showTray
       PropertyChanges { target: clockWidget; height: 120; width: 440; radius: 28 }
     },
     State {
       name: "sys"
-      when: clockWidget.showSys
       PropertyChanges { target: clockWidget; height: 100; width: 480; radius: 28 }
     },
     State {
       name: "pomodoro"
-      when: clockWidget.showPomodoro
       PropertyChanges { target: clockWidget; height: 76; width: 380; radius: 28 }
     },
     State {
       name: "batteryAlert"
-      when: clockWidget.showBatteryAlert
       PropertyChanges { target: clockWidget; height: 48; width: 220; radius: 24 }
     }
   ]
