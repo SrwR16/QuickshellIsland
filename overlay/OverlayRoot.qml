@@ -18,6 +18,8 @@ Item {
     AppLauncherService { id: appLauncherSvc }
     ModeService { id: modeSvc }
     AskpassService { id: askpassSvc }
+    PrivacyService { id: privacySvc }
+    VpnService { id: vpnSvc }
 
     // Transparent background interceptor for closing menus when clicking outside
     MouseArea {
@@ -38,6 +40,7 @@ Item {
             island.showPomodoro = false;
             island.showSys = false;
             island.showTray = false;
+            island.showVpn = false;
             island.isPinned = false;
             island.showProductivity = false;
             island.showAppLauncher = false;
@@ -60,6 +63,8 @@ Item {
         wallpaperSvc: wallpaperSvc
         modeSvc: modeSvc
         askpassSvc: askpassSvc
+        privacySvc: privacySvc
+        vpnSvc: vpnSvc
     }
 
     // Embed Search (formerly AppLauncher) directly in the same scene graph

@@ -12,6 +12,9 @@ import QtQuick.Layouts
 Rectangle {
   id: clockWidget
 
+  property QtObject privacySvc
+  property QtObject vpnSvc
+
   function exclusiveOpen(menuName) {
     if (menuName !== "cc") showControlCenter = false;
     if (menuName !== "power") showPowerMenu = false;
@@ -24,9 +27,11 @@ Rectangle {
     if (menuName !== "battery") showBatteryAlert = false;
     if (menuName !== "askpass") showAskpass = false;
     if (menuName !== "prod") showProductivity = false;
+    if (menuName !== "vpn") showVpn = false;
   }
 
   property bool showControlCenter: false
+  property bool showVpn: false
   onShowControlCenterChanged: {
     if (showControlCenter) exclusiveOpen("cc");
     else isPinned = false; // Force unpin when closing so it fully shrinks down to 36px
@@ -204,7 +209,8 @@ Rectangle {
   property bool showBatteryAlert: false
   property bool showProductivity: false
   property string productivityPage: "time"
-  property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerMenu || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showingNotification
+  // Add showVpn to anyOverlayActive
+  property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerMenu || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
   property string batteryAlertMode: "charging" // "charging", "unplugged", "low"
   property Timer batteryAlertTimer: Timer {
     interval: 2000 // Reduced from 3000ms so it doesn't stay visible for too long
@@ -372,10 +378,41 @@ Rectangle {
   property bool showAskpass: askpassSvc && askpassSvc.pendingRequest !== null
 
   // Size changes are the core of the Dynamic Island morph.
-  // Regular expanded = 64×540; CC = auto×540; notification/power = 130×480; app launcher = 240×480; askpass = 200×480; collapsed = 36×auto; pomodoro = 76x380; movies = 180x540; sys = 100x480; battery = 48x220; tray = 120x440
-  height: showProductivity ? prodItem.implicitHeight + 70 : showControlCenter ? ccItem.implicitHeight + 70 : showAppLauncher ? 240 : (showWallpaperMenu ? 300 : (showAskpass ? 200 : (showMovies ? 540 : (latestNotificationData || showPowerMenu ? 130 : (showTray ? 120 : (showSys ? 100 : (showPomodoro ? 76 : (showBatteryAlert ? 48 : (isExpanded ? 64 : 36)))))))))
-  width: showProductivity ? 540 : showControlCenter ? 680 : showWallpaperMenu ? 640 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showSys ? 480 : (showMovies ? 540 : (showTray ? 440 : (showPomodoro ? 380 : (showBatteryAlert ? 220 : (isExpanded ? 540 : (mode !== "default" ? indicatorRow.implicitWidth + 32 : collapsedContent.contentWidth + 86)))))))
-  radius: showProductivity ? 28 : showControlCenter ? 24 : showWallpaperMenu ? 28 : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showMovies || showSys || showTray ? 28 : (showBatteryAlert ? 24 : (isExpanded ? 22 : 18)))
+  height: showProductivity ? prodItem.implicitHeight + 70 
+        : showControlCenter ? ccItem.implicitHeight + 70 
+        : showAppLauncher ? 240 
+        : showWallpaperMenu ? 300 
+        : showAskpass ? 200 
+        : showMovies ? 540 
+        : showVpn ? 200 
+        : (latestNotificationData || showPowerMenu) ? 130 
+        : showTray ? 120 
+        : showSys ? 100 
+        : showPomodoro ? 76 
+        : showBatteryAlert ? 48 
+        : isExpanded ? 64 
+        : 36
+
+  width: showProductivity ? 540 
+       : showControlCenter ? 680 
+       : showWallpaperMenu ? 640 
+       : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showSys) ? 480 
+       : showMovies ? 540 
+       : showTray ? 440 
+       : showPomodoro ? 380 
+       : showBatteryAlert ? 220 
+       : isExpanded ? 540 
+       : (mode !== "default") ? indicatorRow.implicitWidth + 32 
+       : collapsedContent.contentWidth + 86
+
+  radius: showProductivity ? 28 
+        : showControlCenter ? 24 
+        : showWallpaperMenu ? 28 
+        : (showAskpass || latestNotificationData || showPowerMenu || showAppLauncher || showMovies || showSys || showTray) ? 28 
+        : showBatteryAlert ? 24 
+        : isExpanded ? 22 
+        : 18
+
   color: Theme.background
 
   // Fluid morph animation for expansion/collapse (Apple-like)
@@ -437,7 +474,7 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: 200 } }
 
     property real leftWidth: media.playing ? visualizerContainer.width + 12 : 0
-    property real rightWidth: PomodoroService.sessionState !== "Idle" ? pomodoroRow.implicitWidth + 12 : 0
+    property real rightWidth: (PomodoroService.sessionState !== "Idle" ? pomodoroRow.implicitWidth + 12 : 0) + (privacyContainer.targetWidth > 0 ? privacyContainer.targetWidth + 12 : 0)
     property real maxSide: Math.max(leftWidth, rightWidth)
     property real contentWidth: collapsedClockText.implicitWidth + maxSide * 2
 
@@ -506,6 +543,57 @@ Rectangle {
         font.family: "JetBrains Mono"
         font.pixelSize: 13
         font.weight: 700
+      }
+    }
+
+    Item {
+      id: privacyContainer
+      anchors.left: PomodoroService.sessionState !== "Idle" ? pomodoroRow.right : collapsedClockText.right
+      anchors.leftMargin: active ? 12 : 0
+      anchors.verticalCenter: parent.verticalCenter
+      property bool active: (clockWidget.vpnSvc && clockWidget.vpnSvc.isActive) || (clockWidget.privacySvc && (clockWidget.privacySvc.isMicActive || clockWidget.privacySvc.isWebcamActive))
+      property real targetWidth: active ? privacyRow.implicitWidth : 0
+      width: targetWidth
+      height: 18
+      clip: true
+
+      Behavior on anchors.leftMargin { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+      Behavior on targetWidth { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+
+      Row {
+        id: privacyRow
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 6
+
+        Text {
+          text: "󰒄"
+          color: Theme.primary
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 14 }
+          visible: clockWidget.vpnSvc && clockWidget.vpnSvc.isActive
+        }
+
+        Rectangle {
+          width: 6; height: 6; radius: 3; color: "#f5a623"
+          visible: clockWidget.privacySvc && clockWidget.privacySvc.isMicActive
+          anchors.verticalCenter: parent.verticalCenter
+        }
+
+        Rectangle {
+          width: 6; height: 6; radius: 3; color: "#34c759"
+          visible: clockWidget.privacySvc && clockWidget.privacySvc.isWebcamActive
+          anchors.verticalCenter: parent.verticalCenter
+        }
+      }
+
+      MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        visible: clockWidget.vpnSvc && clockWidget.vpnSvc.isActive
+        onClicked: {
+          clockWidget.exclusiveOpen("vpn");
+          clockWidget.showVpn = !clockWidget.showVpn;
+        }
       }
     }
   }
@@ -1149,4 +1237,15 @@ Rectangle {
     id: clock
     precision: SystemClock.Minutes
   }
+
+  VpnSection {
+    vpnSvc: clockWidget.vpnSvc
+    visible: clockWidget.showVpn
+    opacity: visible ? 1 : 0
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.top: parent.top
+    anchors.topMargin: 56
+    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+  }
 }
+
