@@ -11,6 +11,7 @@ Item {
     id: overlayRoot
     
     property bool anyActive: island.anyOverlayActive || island.showControlCenter || island.showAppLauncher
+    property int islandHeight: island.height
 
     NotificationService { id: notifService }
     WallpaperService { id: wallpaperSvc }

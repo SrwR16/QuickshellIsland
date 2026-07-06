@@ -101,7 +101,7 @@ QtObject {
     command: [
       "stdbuf", "-oL",
       "cava",
-      "-p", Quickshell.shellPath("Widgets/cava/cava.conf")
+      "-p", Quickshell.shellPath("widgets/cava.conf")
     ]
     running: playing
 

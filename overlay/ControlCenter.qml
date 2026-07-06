@@ -627,10 +627,34 @@ Item {
             spacing: 12
 
             // ---- HEADER (Hidden on Main Page) ----
-            RowLayout {
+            Item {
                 Layout.fillWidth: true
-                spacing: 8
+                implicitHeight: headerRow.implicitHeight
                 visible: controlCenter.page !== "main"
+
+                RowLayout {
+                    id: headerRow
+                    anchors.fill: parent
+                    spacing: 8
+
+                    Text {
+                        text: "󰅁"
+                        color: Theme.text
+                        font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
+                    }
+
+                    Text {
+                        text: controlCenter.page === "wifi" ? "Wi-Fi"
+                            : controlCenter.page === "bluetooth" ? "Bluetooth"
+                            : controlCenter.page === "audio" ? "Audio"
+                            : controlCenter.page === "nightlight" ? "Night Light"
+                            : controlCenter.page === "mode" ? "Performance Mode"
+                            : ""
+                        color: Theme.text
+                        font { family: "Inter"; pixelSize: 15; weight: 700 }
+                        Layout.fillWidth: true
+                    }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -640,24 +664,6 @@ Item {
                         if (controlCenter.page !== "main") controlCenter.page = "main";
                         else controlCenter.closeRequested();
                     }
-                }
-
-                Text {
-                    text: "󰅁"
-                    color: Theme.text
-                    font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
-                }
-
-                Text {
-                    text: controlCenter.page === "wifi" ? "Wi-Fi"
-                        : controlCenter.page === "bluetooth" ? "Bluetooth"
-                        : controlCenter.page === "audio" ? "Audio"
-                        : controlCenter.page === "nightlight" ? "Night Light"
-                        : controlCenter.page === "mode" ? "Performance Mode"
-                        : ""
-                    color: Theme.text
-                    font { family: "Inter"; pixelSize: 15; weight: 700 }
-                    Layout.fillWidth: true
                 }
             }
 

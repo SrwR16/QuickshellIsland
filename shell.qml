@@ -74,7 +74,7 @@ ShellRoot {
             }
         }
 
-        implicitHeight: needsLargeWindow ? 1080 : overlayRoot.childrenRect.height
+        implicitHeight: needsLargeWindow ? 1080 : overlayRoot.islandHeight + 20
         
         color: "transparent"
         WlrLayershell.exclusiveZone: 56
