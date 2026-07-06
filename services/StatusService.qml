@@ -25,11 +25,12 @@ QtObject {
   property Process batProc: Process {
     command: [
       "sh", "-c",
-      "while true; do " +
-      "  cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1); " +
-      "  st=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1); " +
-      "  echo \"BAT:${cap}:${st:-Unknown}\"; " +
-      "  sleep 1; " +
+      "get_bat() { " +
+      "  upower -i /org/freedesktop/UPower/devices/DisplayDevice | awk '/percentage:/ {p=$2} /state:/ {s=$2} END {gsub(/%/,\"\",p); print \"BAT:\" (p?p:0) \":\" (s?s:\"Unknown\")}' 2>/dev/null; " +
+      "}; " +
+      "get_bat; " +
+      "dbus-monitor --system \"type='signal',interface='org.freedesktop.DBus.Properties',path='/org/freedesktop/UPower/devices/DisplayDevice'\" 2>/dev/null | while read -r line; do " +
+      "  get_bat; " +
       "done"
     ]
     running: true
