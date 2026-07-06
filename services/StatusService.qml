@@ -22,43 +22,60 @@ QtObject {
 
   readonly property string networkState: connType === "disconnected" ? "Disconnected" : "Connected"
 
-  property Timer pollTimer: Timer {
-    interval: 5000; running: true; repeat: true; triggeredOnStart: true
-    onTriggered: { pollProc.running = true }
-  }
-
-  property Process pollProc: Process {
+  property Process batProc: Process {
     command: [
       "sh", "-c",
-      "cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1); " +
-      "st=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1); " +
-      "types=$(nmcli -t -f TYPE,NAME con show --active 2>/dev/null); " +
-      "ssid=$(echo \"$types\" | grep '^802-11-wireless:' | cut -d: -f2 -s); " +
-      "[ -z \"$ssid\" ] && ssid=$(iwgetid -r 2>/dev/null); " +
-      "eth=$(echo \"$types\" | grep '^802-3-ethernet:' | cut -d: -f2 -s); " +
-      "connType=disconnected; " +
-      "[ -n \"$ssid\" ] && connType=wifi; " +
-      "[ -z \"$ssid\" ] && [ -n \"$eth\" ] && { ssid=\"$eth\"; connType=wired; }; " +
-      "[ -z \"$ssid\" ] && ssid=Disconnected; " +
-      "sig=$(awk 'NR>2{if($3!=\"\"){gsub(/\\./,\"\",$3); q=$3+0; print int(q*100/70)}}' /proc/net/wireless 2>/dev/null || echo 0); " +
-      "echo \"${cap:-0}\"; echo \"${st:-Unknown}\"; echo \"$ssid\"; echo \"$sig\"; echo \"$connType\""
+      "while true; do " +
+      "  cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1); " +
+      "  st=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1); " +
+      "  echo \"BAT:${cap:-0}:${st:-Unknown}\"; " +
+      "  sleep 1; " +
+      "done"
     ]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var lines = this.text.trim().split("\n");
-        if (lines.length >= 5) {
-          try {
-            var b = parseInt(lines[0]);
-            if (!isNaN(b) && b > 0) {
-              if (b > 100) b = 100;
-              battery = b;
-            }
-          } catch(e) {}
-          powerStatus = lines[1].trim();
-          charging = powerStatus === "Charging" || powerStatus === "Full";
-          wifi = lines[2].trim() || "Disconnected";
-          wifiSignal = Math.min(100, Math.max(0, parseInt(lines[3]) || 0));
-          connType = lines[4].trim() || "disconnected";
+    running: true
+    stdout: SplitParser {
+      onRead: (data) => {
+        var line = data.trim();
+        if (line.startsWith("BAT:")) {
+          var parts = line.substring(4).split(":");
+          if (parts.length >= 2) {
+            battery = parseInt(parts[0]);
+            powerStatus = parts[1];
+            charging = (powerStatus === "Charging" || powerStatus === "Full");
+          }
+        }
+      }
+    }
+  }
+
+  property Process wifiProc: Process {
+    command: [
+      "sh", "-c",
+      "while true; do " +
+      "  types=$(nmcli -t -f TYPE,NAME con show --active 2>/dev/null); " +
+      "  ssid=$(echo \"$types\" | grep '^802-11-wireless:' | cut -d: -f2 -s); " +
+      "  [ -z \"$ssid\" ] && ssid=$(iwgetid -r 2>/dev/null); " +
+      "  eth=$(echo \"$types\" | grep '^802-3-ethernet:' | cut -d: -f2 -s); " +
+      "  ctype=disconnected; " +
+      "  [ -n \"$ssid\" ] && ctype=wifi; " +
+      "  [ -z \"$ssid\" ] && [ -n \"$eth\" ] && { ssid=\"$eth\"; ctype=wired; }; " +
+      "  [ -z \"$ssid\" ] && ssid=Disconnected; " +
+      "  sig=$(awk 'NR>2{if($3!=\"\"){gsub(/\\./,\"\",$3); q=$3+0; print int(q*100/70)}}' /proc/net/wireless 2>/dev/null || echo 0); " +
+      "  echo \"WIFI:$ssid:$sig:$ctype\"; " +
+      "  sleep 5; " +
+      "done"
+    ]
+    running: true
+    stdout: SplitParser {
+      onRead: (data) => {
+        var line = data.trim();
+        if (line.startsWith("WIFI:")) {
+          var parts = line.split(":");
+          if (parts.length >= 4) {
+            wifi = parts.slice(1, parts.length - 2).join(":");
+            wifiSignal = parseInt(parts[parts.length - 2]);
+            connType = parts[parts.length - 1];
+          }
         }
       }
     }
