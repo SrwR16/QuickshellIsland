@@ -51,9 +51,8 @@ ShellRoot {
         id: mainWindow
         anchors { top: true; left: true; right: true }
         
-        // This stops Wayland resizing thrashing. We keep it large enough if there's an overlay open.
-        // Wait, to do this without resizing the buffer during animations:
-        implicitHeight: overlayRoot.anyActive ? 1080 : overlayRoot.childrenRect.height
+        // Never resize the Wayland window to avoid flickering and stutter.
+        implicitHeight: 1080
         
         color: "transparent"
         WlrLayershell.exclusiveZone: 56
