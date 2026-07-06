@@ -28,7 +28,7 @@ QtObject {
       "while true; do " +
       "  cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1); " +
       "  st=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1); " +
-      "  echo \"BAT:${cap:-0}:${st:-Unknown}\"; " +
+      "  echo \"BAT:${cap}:${st:-Unknown}\"; " +
       "  sleep 1; " +
       "done"
     ]
@@ -39,7 +39,10 @@ QtObject {
         if (line.startsWith("BAT:")) {
           var parts = line.substring(4).split(":");
           if (parts.length >= 2) {
-            battery = parseInt(parts[0]);
+            var parsedVal = parseInt(parts[0]);
+            if (!isNaN(parsedVal) && parsedVal >= 0 && parsedVal <= 100) {
+              battery = parsedVal;
+            }
             powerStatus = parts[1];
             charging = (powerStatus === "Charging" || powerStatus === "Full");
           }
