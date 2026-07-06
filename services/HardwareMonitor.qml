@@ -14,12 +14,23 @@ QtObject {
     property Process pollProc: Process {
         command: [
             "sh", "-c",
+            "b_path=$(ls /sys/class/backlight/*/brightness 2>/dev/null | head -1); " +
+            "c_path=$(ls /sys/class/leds/*::capslock/brightness 2>/dev/null | head -1); " +
+            "n_path=$(ls /sys/class/leds/*::numlock/brightness 2>/dev/null | head -1); " +
+            "k_path=$(ls /sys/class/leds/*kbd_backlight*/brightness 2>/dev/null | head -1); " +
+            "b_max=$(cat ${b_path%/*}/max_brightness 2>/dev/null || echo 100); " +
+            "k_max=$(cat ${k_path%/*}/max_brightness 2>/dev/null || echo 100); " +
+            "last_b=\"\"; last_c=\"\"; last_n=\"\"; last_k=\"\"; " +
             "while true; do " +
-            "  b=$(brightnessctl -m 2>/dev/null | head -1 | cut -d, -f4 | tr -d '%' || echo 0); " +
-            "  c=$(hyprctl devices -j 2>/dev/null | grep -q '\"capsLock\": true' && echo 1 || echo 0); " +
-            "  n=$(hyprctl devices -j 2>/dev/null | grep -q '\"numLock\": true' && echo 1 || echo 0); " +
-            "  k=$(brightnessctl -d '*kbd_backlight*' -m 2>/dev/null | head -1 | cut -d, -f4 | tr -d '%' || echo 0); " +
-            "  echo \"b=$b\"; echo \"c=$c\"; echo \"n=$n\"; echo \"k=$k\"; " +
+            "  [ -n \"$b_path\" ] && read -r b < \"$b_path\" || b=0; " +
+            "  [ -n \"$c_path\" ] && read -r c < \"$c_path\" || c=0; " +
+            "  [ -n \"$n_path\" ] && read -r n < \"$n_path\" || n=0; " +
+            "  [ -n \"$k_path\" ] && read -r k < \"$k_path\" || k=0; " +
+            "  if [ \"$b\" != \"$last_b\" ] || [ \"$c\" != \"$last_c\" ] || [ \"$n\" != \"$last_n\" ] || [ \"$k\" != \"$last_k\" ]; then " +
+            "    b_pct=$(( b * 100 / b_max )); k_pct=$(( k * 100 / k_max )); " +
+            "    echo \"b=$b_pct\"; echo \"c=$c\"; echo \"n=$n\"; echo \"k=$k_pct\"; " +
+            "    last_b=\"$b\"; last_c=\"$c\"; last_n=\"$n\"; last_k=\"$k\"; " +
+            "  fi; " +
             "  sleep 0.05; " +
             "done"
         ]
