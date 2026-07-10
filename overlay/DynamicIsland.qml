@@ -199,14 +199,24 @@ Rectangle {
       return
     }
     if (clockWidget.showBatteryAlert && activityManager.activeActivity && activityManager.activeActivity.type === "battery") {
-      activityManager.activeActivity.dismissAt = Date.now() + 2000
-      activityManager.activeActivity.data.mode = mode
+      clockWidget._pendingBatteryMode = mode
       return
     }
     var cur = activityManager.activeActivity
     if (!cur || cur.priority >= activityManager.priorityTimeSensitive) {
       activityManager.dismissByType("battery")
       activityManager.push("battery", { mode: mode }, activityManager.priorityPassive, 2000)
+    }
+  }
+
+  Connections {
+    target: activityManager
+    function onActiveActivityChanged() {
+      if (!clockWidget.showBatteryAlert && clockWidget._pendingBatteryMode) {
+        var m = clockWidget._pendingBatteryMode
+        clockWidget._pendingBatteryMode = ""
+        clockWidget.pushBatteryAlert(m)
+      }
     }
   }
 
