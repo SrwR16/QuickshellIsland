@@ -8,9 +8,8 @@ Item {
   implicitWidth: maxPills * (pillWidth + pillSpacing) - pillSpacing
 
   readonly property int maxPills: 5
-  readonly property int pillWidth: 24
-  readonly property int pillHeight: 22
-  readonly property int pillSpacing: 4
+  readonly property int pillWidth: 18
+  readonly property int pillSpacing: 8
 
   property var items: []
   property int focusedIndex: -1
@@ -74,58 +73,55 @@ Item {
     boundsBehavior: Flickable.StopAtBounds
     flickableDirection: Flickable.HorizontalFlick
 
-    Item {
-      width: row.width
-      height: row.height
+    Row {
+      id: row
+      height: parent.height
+      spacing: pillSpacing
 
-      Row {
-        id: row
-        height: parent.height
-        spacing: pillSpacing
+      Repeater {
+        model: root.items
 
-        Repeater {
-          model: root.items
+        delegate: Item {
+          id: pill
+          required property var modelData
 
-          delegate: Item {
-            id: pill
-            required property var modelData
+          width: pillWidth
+          height: pillHeight
 
-            width: pillWidth
-            height: pillHeight
-
-            Rectangle {
-              anchors.fill: parent
-              radius: 5
-              color: {
-                if (index === root.focusedIndex) return Theme.surfaceVariant
-                if (mouseArea.containsMouse) return Theme.surfaceBright
-                return root.windowCount(modelData) > 0 ? Theme.surfaceContainer : "transparent"
-              }
-              border.color: index === root.focusedIndex ? Theme.primary : "transparent"
-              border.width: 1
+          Text {
+            id: label
+            anchors.centerIn: parent
+            text: modelData.id
+            color: {
+              if (index === root.focusedIndex) return Theme.tertiary
+              if (mouseArea.containsMouse) return Theme.text
+              return root.windowCount(modelData) > 0 ? Theme.subtext : Theme.muted
             }
-
-            Text {
-              anchors.centerIn: parent
-              text: modelData.id
-              color: {
-                if (index === root.focusedIndex) return Theme.primary
-                if (mouseArea.containsMouse) return Theme.text
-                return root.windowCount(modelData) > 0 ? Theme.subtext : Theme.muted
-              }
-              font {
-                family: "Inter"
-                pixelSize: 11
-                weight: index === root.focusedIndex ? Font.Bold : Font.Medium
-              }
+            font {
+              family: "Inter"
+              pixelSize: 12
+              weight: index === root.focusedIndex ? Font.Bold : Font.Medium
             }
+          }
 
-            MouseArea {
-              id: mouseArea
-              anchors.fill: parent; anchors.margins: -2
-              hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-              onClicked: Hyprland.dispatch("workspace " + modelData.id)
-            }
+          Rectangle {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 1
+            width: label.width + 4
+            height: 2
+            radius: 1
+            color: Theme.tertiary
+            visible: index === root.focusedIndex
+            opacity: mouseArea.containsMouse ? 0.8 : 1.0
+            Behavior on opacity { NumberAnimation { duration: 150 } }
+          }
+
+          MouseArea {
+            id: mouseArea
+            anchors.fill: parent; anchors.margins: -4
+            hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+            onClicked: Hyprland.dispatch("workspace " + modelData.id)
           }
         }
       }
