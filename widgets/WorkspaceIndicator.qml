@@ -4,8 +4,8 @@ import "../theme"
 
 Item {
   id: root
-  height: 24
-  implicitWidth: maxPills * (pillWidth + pillSpacing) - pillSpacing + 8
+  height: 22
+  implicitWidth: maxPills * (pillWidth + pillSpacing) - pillSpacing
 
   readonly property int maxPills: 5
   readonly property int pillWidth: 24
@@ -65,86 +65,76 @@ Item {
 
   Component.onCompleted: Qt.callLater(root.update)
 
-  Rectangle {
-    id: container
+  Flickable {
     anchors.fill: parent
-    radius: 6
-    color: Theme.surfaceContainer
-    border.color: Theme.border
-    border.width: 1
+    contentWidth: row.width
+    contentHeight: row.height
+    clip: true
+    interactive: contentWidth > width
+    boundsBehavior: Flickable.StopAtBounds
+    flickableDirection: Flickable.HorizontalFlick
 
-    Flickable {
-      anchors.fill: parent
-      anchors.margins: 2
-      contentWidth: row.width
-      contentHeight: row.height
-      clip: true
-      interactive: contentWidth > width
-      boundsBehavior: Flickable.StopAtBounds
-      flickableDirection: Flickable.HorizontalFlick
+    Item {
+      width: row.width
+      height: row.height
 
-      Item {
-        width: row.width
-        height: row.height
+      Rectangle {
+        id: activeHighlight
+        width: pillWidth
+        height: pillHeight
+        radius: 5
+        color: Theme.primary
+        visible: focusedIndex >= 0
 
-        Rectangle {
-          id: activeHighlight
-          width: pillWidth
-          height: pillHeight
-          radius: 5
-          color: Theme.primary
-          visible: focusedIndex >= 0
+        x: focusedIndex >= 0 ? focusedIndex * (pillWidth + pillSpacing) : -100
+        y: 0
+        Behavior on x { NumberAnimation { duration: 200; easing: Easing.OutQuart } }
+      }
 
-          x: focusedIndex >= 0 ? focusedIndex * (pillWidth + pillSpacing) : -100
-          y: 0
-          Behavior on x { NumberAnimation { duration: 200; easing: Easing.OutQuart } }
-        }
+      Row {
+        id: row
+        height: parent.height
+        spacing: pillSpacing
 
-        Row {
-          id: row
-          height: parent.height
-          spacing: pillSpacing
+        Repeater {
+          model: root.items
 
-          Repeater {
-            model: root.items
+          delegate: Item {
+            id: pill
+            required property var modelData
 
-            delegate: Item {
-              id: pill
-              required property var modelData
+            width: pillWidth
+            height: pillHeight
 
-              width: pillWidth
-              height: pillHeight
-
-              Text {
-                anchors.centerIn: parent
-                text: modelData.id
-                color: {
-                  if (index === root.focusedIndex) return Theme.onPrimary
-                  if (mouseArea.containsMouse) return Theme.text
-                  return root.windowCount(modelData) > 0 ? Theme.text : Theme.muted
-                }
-                font {
-                  family: "Inter"
-                  pixelSize: 11
-                  weight: index === root.focusedIndex ? Font.Bold : Font.Medium
-                }
+            Text {
+              anchors.centerIn: parent
+              text: modelData.id
+              color: {
+                if (index === root.focusedIndex) return Theme.onPrimary
+                if (mouseArea.containsMouse) return Theme.text
+                return root.windowCount(modelData) > 0 ? Theme.text : Theme.muted
               }
-
-              Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 2
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: 3; height: 3; radius: 1.5
-                visible: root.windowCount(modelData) > 0 && index !== root.focusedIndex
-                color: Theme.primary
+              font {
+                family: "Inter"
+                pixelSize: 11
+                weight: index === root.focusedIndex ? Font.Bold : Font.Medium
               }
+            }
 
-              MouseArea {
-                id: mouseArea
-                anchors.fill: parent; anchors.margins: -2
-                hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                onClicked: Hyprland.dispatch("workspace " + modelData.id)
-              }
+            Rectangle {
+              anchors.bottom: parent.bottom
+              anchors.bottomMargin: 2
+              anchors.horizontalCenter: parent.horizontalCenter
+              width: 3; height: 3; radius: 1.5
+              visible: root.windowCount(modelData) > 0 && index !== root.focusedIndex
+              color: Theme.primary
+            }
+
+            MouseArea {
+              id: mouseArea
+              anchors.fill: parent; anchors.margins: -2
+              hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+              onClicked: Hyprland.dispatch("workspace " + modelData.id)
             }
           }
         }
