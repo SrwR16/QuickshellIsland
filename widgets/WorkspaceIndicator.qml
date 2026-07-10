@@ -11,14 +11,12 @@ Item {
   property int _focused: -1
   property int _count: 0
 
-  on_CountChanged: updateItems()
-
   function windowCount(ws) {
     if (!ws || !ws.toplevels) return 0
     try { return ws.toplevels.values.length } catch (e) { return 0 }
   }
 
-  function updateItems() {
+  function update() {
     try {
       if (!Hyprland || !Hyprland.workspaces) return
       var vals = Hyprland.workspaces.values
@@ -43,12 +41,12 @@ Item {
 
   Connections {
     target: Hyprland.workspaces
-    function onValuesChanged() { root.updateItems() }
+    function onValuesChanged() { root.update() }
   }
 
   Connections {
     target: Hyprland
-    function onFocusedWorkspaceChanged() { root.updateItems() }
+    function onFocusedWorkspaceChanged() { root.update() }
   }
 
   Timer {
@@ -56,13 +54,13 @@ Item {
     running: true
     repeat: true
     onTriggered: {
-      root.updateItems()
+      root.update()
       if (root._count > 0)
         running = false
     }
   }
 
-  Component.onCompleted: Qt.callLater(updateItems)
+  Component.onCompleted: Qt.callLater(root.update)
 
   Row {
     id: row
@@ -73,7 +71,6 @@ Item {
       model: root._count
 
       delegate: Item {
-        id: pill
         required property int index
         readonly property var ws: root._items.length > index ? root._items[index] : null
         readonly property bool isActive: index === root._focused
@@ -85,8 +82,7 @@ Item {
         Rectangle {
           anchors.fill: parent
           radius: 5
-          color: isActive ? Theme.tertiary : (mouseArea.containsMouse ? Theme.surfaceBright : (hasWindows ? Theme.surfaceContainer : "transparent"))
-          visible: isActive || hasWindows || mouseArea.containsMouse
+          color: isActive ? Theme.tertiary : (hasWindows ? Theme.surfaceContainer : Theme.surface)
         }
 
         Text {
@@ -98,14 +94,6 @@ Item {
             pixelSize: 12
             weight: isActive ? Font.Bold : Font.Medium
           }
-        }
-
-        MouseArea {
-          id: mouseArea
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: { if (ws) Hyprland.dispatch("workspace " + ws.id) }
         }
       }
     }
