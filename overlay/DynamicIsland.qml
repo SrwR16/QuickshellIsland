@@ -866,6 +866,7 @@ Rectangle {
       WorkspaceIndicator {
         id: workspaceIndicator
         anchors.left: parent.left
+        anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
       }
     }
