@@ -9,11 +9,23 @@ Item {
   property var items: []
 
   function update() {
-    var vals = Hyprland.workspaces.values
+    var vals = []
+
+    try {
+      if (typeof Hyprland !== "undefined" && Hyprland !== null &&
+          typeof Hyprland.workspaces !== "undefined" && Hyprland.workspaces !== null) {
+        vals = Hyprland.workspaces.values || []
+      } else {
+        return
+      }
+    } catch (e) {
+      return
+    }
+
     var list = []
     for (var i = 0; i < vals.length; i++) {
       var ws = vals[i]
-      if (ws.focused || ws.toplevels.length > 0)
+      if (ws && (ws.focused || (ws.toplevels && ws.toplevels.length > 0)))
         list.push(ws)
     }
     list.sort(function(a, b) { return a.id - b.id })
@@ -22,31 +34,36 @@ Item {
 
   Connections {
     target: Hyprland.workspaces
+    enabled: typeof Hyprland !== "undefined" && Hyprland !== null &&
+             typeof Hyprland.workspaces !== "undefined" && Hyprland.workspaces !== null
     function onValuesChanged() { root.update() }
   }
 
   Connections {
     target: Hyprland
+    enabled: typeof Hyprland !== "undefined" && Hyprland !== null
     function onFocusedWorkspaceChanged() { root.update() }
   }
 
   Timer {
-    interval: 500
-    running: root.items.length === 0
-    repeat: false
-    onTriggered: root.update()
+    interval: 300
+    running: true
+    repeat: true
+    onTriggered: {
+      root.update()
+      if (root.items.length > 0)
+        running = false
+    }
   }
 
-  Component.onCompleted: root.update()
+  Component.onCompleted: Qt.callLater(root.update)
 
   Rectangle {
-    id: container
     anchors.fill: parent
     radius: 8
     color: Theme.surfaceContainer
     border.color: Theme.border
     border.width: 1
-    visible: root.items.length > 0
 
     Flickable {
       anchors.fill: parent
@@ -89,7 +106,7 @@ Item {
               anchors.bottomMargin: 2
               anchors.horizontalCenter: parent.horizontalCenter
               width: 4; height: 4; radius: 2
-              visible: modelData.toplevels.length > 0 && !modelData.focused
+              visible: modelData.toplevels && modelData.toplevels.length > 0 && !modelData.focused
               color: Theme.primary
             }
 
@@ -97,7 +114,10 @@ Item {
               id: mouseArea
               anchors.fill: parent; anchors.margins: -2
               hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-              onClicked: Hyprland.dispatch("workspace " + modelData.id)
+              onClicked: {
+                if (typeof Hyprland !== "undefined" && Hyprland !== null)
+                  Hyprland.dispatch("workspace " + modelData.id)
+              }
             }
           }
         }
