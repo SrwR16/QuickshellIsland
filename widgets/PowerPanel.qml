@@ -26,9 +26,11 @@ Item {
         width: 56
 
         Rectangle {
+          id: btnBg
           anchors.horizontalCenter: parent.horizontalCenter
           width: 56; height: 56; radius: 16
-          color: Theme.surfaceLight
+          color: btnArea.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
+          Behavior on color { ColorAnimation { duration: 150 } }
 
           Text {
             anchors.centerIn: parent
@@ -38,6 +40,7 @@ Item {
           }
 
           MouseArea {
+            id: btnArea
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             hoverEnabled: true
