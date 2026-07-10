@@ -111,10 +111,9 @@ Item {
               radius: 5
               color: {
                 if (index === root.focusedIndex) return "transparent"
-                if (mouseArea.containsMouse) return Qt.rgba(bgBase.r, bgBase.g, bgBase.b, 0.1)
-                return root.windowCount(modelData) > 0 ? Qt.rgba(bgBase.r, bgBase.g, bgBase.b, 0.15) : "transparent"
+                if (mouseArea.containsMouse) return Theme.surfaceBright
+                return root.windowCount(modelData) > 0 ? Theme.surfaceVariant : "transparent"
               }
-              property color bgBase: root.windowCount(modelData) > 0 ? Theme.text : Theme.muted
             }
 
             Text {
@@ -130,15 +129,6 @@ Item {
                 pixelSize: 11
                 weight: index === root.focusedIndex ? Font.Bold : Font.Medium
               }
-            }
-
-            Rectangle {
-              anchors.bottom: parent.bottom
-              anchors.bottomMargin: 2
-              anchors.horizontalCenter: parent.horizontalCenter
-              width: 3; height: 3; radius: 1.5
-              visible: root.windowCount(modelData) > 0 && index !== root.focusedIndex
-              color: Theme.primary
             }
 
             MouseArea {
