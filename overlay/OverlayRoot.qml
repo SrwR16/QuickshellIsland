@@ -19,7 +19,7 @@ Item {
     NotificationService {
       id: notifService
       onNotificationReceived: function(data, notification) {
-        activityManager.push("notification", data, activityManager.priorityTimeSensitive, 3500)
+        activityManager.push("notification", data, activityManager.priorityPassive, 3500)
       }
     }
     Connections {

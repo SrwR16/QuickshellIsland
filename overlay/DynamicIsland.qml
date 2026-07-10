@@ -198,15 +198,11 @@ Rectangle {
       clockWidget._pendingBatteryMode = mode
       return
     }
-    if (clockWidget.showBatteryAlert && activityManager.activeActivity && activityManager.activeActivity.type === "battery") {
+    if (activityManager.activeActivity) {
       clockWidget._pendingBatteryMode = mode
       return
     }
-    var cur = activityManager.activeActivity
-    if (!cur || cur.priority >= activityManager.priorityTimeSensitive) {
-      activityManager.dismissByType("battery")
-      activityManager.push("battery", { mode: mode }, activityManager.priorityPassive, 2000)
-    }
+    activityManager.push("battery", { mode: mode }, activityManager.priorityPassive, 2000)
   }
 
   Connections {

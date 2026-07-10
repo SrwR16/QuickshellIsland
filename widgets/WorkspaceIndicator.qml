@@ -5,21 +5,20 @@ import "../theme"
 Item {
   id: root
   height: 22
-  implicitWidth: maxPills * (pillWidth + pillSpacing) - pillSpacing
+  implicitWidth: 5 * (24 + 6) - 6
 
-  readonly property int maxPills: 5
-  readonly property int pillWidth: 18
-  readonly property int pillSpacing: 8
+  property var _items: []
+  property int _focused: -1
+  property int _count: 0
 
-  property var items: []
-  property int focusedIndex: -1
+  on_CountChanged: updateItems()
 
   function windowCount(ws) {
     if (!ws || !ws.toplevels) return 0
     try { return ws.toplevels.values.length } catch (e) { return 0 }
   }
 
-  function update() {
+  function updateItems() {
     try {
       if (!Hyprland || !Hyprland.workspaces) return
       var vals = Hyprland.workspaces.values
@@ -32,23 +31,24 @@ Item {
           list.push(ws)
       }
       list.sort(function(a, b) { return a.id - b.id })
-      items = list
+      _items = list
+      _count = list.length
 
-      focusedIndex = -1
+      _focused = -1
       for (var j = 0; j < list.length; j++) {
-        if (list[j].focused) { focusedIndex = j; break }
+        if (list[j].focused) { _focused = j; break }
       }
     } catch (e) {}
   }
 
   Connections {
     target: Hyprland.workspaces
-    function onValuesChanged() { root.update() }
+    function onValuesChanged() { root.updateItems() }
   }
 
   Connections {
     target: Hyprland
-    function onFocusedWorkspaceChanged() { root.update() }
+    function onFocusedWorkspaceChanged() { root.updateItems() }
   }
 
   Timer {
@@ -56,73 +56,56 @@ Item {
     running: true
     repeat: true
     onTriggered: {
-      root.update()
-      if (root.items.length > 0)
+      root.updateItems()
+      if (root._count > 0)
         running = false
     }
   }
 
-  Component.onCompleted: Qt.callLater(root.update)
+  Component.onCompleted: Qt.callLater(updateItems)
 
-  Flickable {
-    anchors.fill: parent
-    contentWidth: row.width
-    contentHeight: row.height
-    clip: true
-    interactive: contentWidth > width
-    boundsBehavior: Flickable.StopAtBounds
-    flickableDirection: Flickable.HorizontalFlick
+  Row {
+    id: row
+    spacing: 6
+    anchors.verticalCenter: parent.verticalCenter
 
-    Row {
-      id: row
-      height: parent.height
-      spacing: pillSpacing
+    Repeater {
+      model: root._count
 
-      Repeater {
-        model: root.items
+      delegate: Item {
+        id: pill
+        required property int index
+        readonly property var ws: root._items.length > index ? root._items[index] : null
+        readonly property bool isActive: index === root._focused
+        readonly property bool hasWindows: ws ? root.windowCount(ws) > 0 : false
 
-        delegate: Item {
-          id: pill
-          required property var modelData
+        width: 24
+        height: 22
 
-          width: pillWidth
-          height: pillHeight
+        Rectangle {
+          anchors.fill: parent
+          radius: 5
+          color: isActive ? Theme.tertiary : (mouseArea.containsMouse ? Theme.surfaceBright : (hasWindows ? Theme.surfaceContainer : "transparent"))
+          visible: isActive || hasWindows || mouseArea.containsMouse
+        }
 
-          Rectangle {
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 1
-            width: 12
-            height: 2
-            radius: 1
-            anchors.horizontalCenter: parent.horizontalCenter
-            color: Theme.tertiary
-            visible: index === root.focusedIndex
+        Text {
+          anchors.centerIn: parent
+          text: ws ? ws.id : ""
+          color: isActive ? Theme.onPrimary : Theme.text
+          font {
+            family: "Inter"
+            pixelSize: 12
+            weight: isActive ? Font.Bold : Font.Medium
           }
+        }
 
-          Text {
-            id: label
-            anchors.centerIn: parent
-            text: modelData.id
-            color: Theme.text
-            font {
-              family: "Inter"
-              pixelSize: 12
-              weight: index === root.focusedIndex ? Font.Bold : (root.windowCount(modelData) > 0 ? Font.Medium : Font.Normal)
-            }
-            opacity: {
-              if (index === root.focusedIndex) return 1.0
-              if (mouseArea.containsMouse) return 1.0
-              return root.windowCount(modelData) > 0 ? 1.0 : 0.5
-            }
-            Behavior on opacity { NumberAnimation { duration: 100 } }
-          }
-
-          MouseArea {
-            id: mouseArea
-            anchors.fill: parent; anchors.margins: -4
-            hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-            onClicked: Hyprland.dispatch("workspace " + modelData.id)
-          }
+        MouseArea {
+          id: mouseArea
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: { if (ws) Hyprland.dispatch("workspace " + ws.id) }
         }
       }
     }
