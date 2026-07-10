@@ -23,8 +23,6 @@ Rectangle {
   function exclusiveOpen(menuName) {
     if (menuName !== "cc") showControlCenter = false;
     if (menuName !== "app") showAppLauncher = false;
-    if (menuName !== "wallpaper") showWallpaperMenu = false;
-
     if (menuName !== "sys") showSys = false;
     if (menuName !== "tray") showTray = false;
     if (menuName !== "askpass") showAskpass = false;
@@ -167,15 +165,6 @@ Rectangle {
     onTriggered: clockWidget.showAppLauncher = false
   }
 
-  // --- Wallpaper menu state ---
-  property bool showWallpaperMenu: false
-  property bool wallpaperMenuHovered: false
-  property var wallpaperSvc: null
-  property Timer wallpaperMenuTimer: Timer {
-    interval: 20000
-    onTriggered: clockWidget.showWallpaperMenu = false
-  }
-
   // --- Battery Alert (via ActivityManager queue) ---
   property bool showProductivity: false
   onShowProductivityChanged: {
@@ -187,7 +176,7 @@ Rectangle {
 
   property bool showBatteryAlert: activityManager && activityManager.activeActivity && activityManager.activeActivity.type === "battery"
   property string batteryAlertMode: showBatteryAlert ? activityManager.activeActivity.data.mode : "charging"
-  property bool anyOverlayActive: showBatteryAlert || showPomodoro || showSys || showTray || showPowerSection || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
+  property bool anyOverlayActive: showBatteryAlert || showPomodoro || showSys || showTray || showPowerSection || showAppLauncher || showAskpass || showProductivity || showVpn || showingNotification
 
   property string _pendingBatteryMode: ""
   property bool _suppressMorph: false
@@ -353,7 +342,6 @@ Rectangle {
   property string morphState: showProductivity ? "productivity" 
                             : showControlCenter ? "controlCenter" 
                             : showAppLauncher ? "appLauncher" 
-                            : showWallpaperMenu ? "wallpaperMenu" 
                             : showAskpass ? "askpass" 
                             : showVpn ? "vpn" 
                             : showTray ? "tray" 
@@ -387,10 +375,6 @@ Rectangle {
     State {
       name: "appLauncher"
       PropertyChanges { target: clockWidget; height: 240; width: 480; radius: 28 }
-    },
-    State {
-      name: "wallpaperMenu"
-      PropertyChanges { target: clockWidget; height: 300; width: 640; radius: 28 }
     },
     State {
       name: "askpass"
@@ -442,10 +426,6 @@ Rectangle {
       if (clockWidget.showingNotification) return;
       if (clockWidget.showPowerSection) {
         clockWidget.showPowerSection = false;
-        return;
-      }
-      if (clockWidget.showWallpaperMenu) {
-        clockWidget.showWallpaperMenu = false;
         return;
       }
       if (clockWidget.showPomodoro) {
@@ -1218,79 +1198,6 @@ Rectangle {
           page: clockWidget.productivityPage
           onRequestClose: clockWidget.showProductivity = false
         }
-      }
-    }
-  }
-
-  // --- Wallpaper menu overlay ---
-  Item {
-    id: wallpaperMenuComponent
-    anchors.fill: parent
-    clip: true
-    visible: clockWidget.showWallpaperMenu
-
-    ColumnLayout {
-      anchors.fill: parent
-      anchors.margins: 16
-      spacing: 8
-
-      // Header
-      RowLayout {
-        Layout.fillWidth: true
-        spacing: 8
-
-        Text {
-          text: ""
-          color: Theme.tertiary
-          font { family: "JetBrainsMono Nerd Font"; pixelSize: 16 }
-        }
-
-        Text {
-          text: "Wallpapers"
-          color: Theme.text
-          font { family: "Inter"; pixelSize: 14; weight: Font.Bold }
-          Layout.fillWidth: true
-        }
-
-        Text {
-          text: "✕"
-          color: Theme.text
-          opacity: 0.5
-          font.pixelSize: 13
-          MouseArea {
-            anchors.fill: parent
-            anchors.margins: -6
-            cursorShape: Qt.PointingHandCursor
-            onClicked: clockWidget.showWallpaperMenu = false
-          }
-        }
-      }
-
-      // Grid
-      Rectangle {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        radius: 12
-        color: Theme.container
-        clip: true
-
-        WallpaperGrid {
-          anchors.fill: parent
-          anchors.margins: 8
-          wallpaperModel: clockWidget.wallpaperSvc ? clockWidget.wallpaperSvc.wallpapers : []
-          wallService: clockWidget.wallpaperSvc
-          onWallpaperChosen: function(path) {
-            clockWidget.showWallpaperMenu = false
-          }
-        }
-
-          MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            propagateComposedEvents: true
-            onEntered: clockWidget.wallpaperMenuHovered = true
-            onExited: clockWidget.wallpaperMenuHovered = false
-          }
       }
     }
   }

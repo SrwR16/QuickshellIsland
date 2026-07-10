@@ -30,7 +30,6 @@ Item {
         }
       }
     }
-    WallpaperService { id: wallpaperSvc }
     AppLauncherService { id: appLauncherSvc }
     ModeService { id: modeSvc }
     AskpassService { id: askpassSvc }
@@ -53,7 +52,6 @@ Item {
             island.showPowerSection = false;
             activityManager.dismissByType("power");
             activityManager.dismissByType("battery");
-            island.showWallpaperMenu = false;
             island.showControlCenter = false;
             island.showPomodoro = false;
             island.showSys = false;
@@ -76,7 +74,6 @@ Item {
         notifService: notifService
         statusSvc: statusSvc
 
-        wallpaperSvc: wallpaperSvc
         modeSvc: modeSvc
         askpassSvc: askpassSvc
         privacySvc: privacySvc
@@ -113,7 +110,6 @@ Item {
             "  out=''; " +
             "  test -f /tmp/qs-power-menu && rm /tmp/qs-power-menu && out=\"${out}p\"; " +
             "  test -f /tmp/qs-app-launcher && rm /tmp/qs-app-launcher && out=\"${out}a\"; " +
-            "  test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; " +
             "  test -f /tmp/qs-mode-cycle && rm /tmp/qs-mode-cycle && out=\"${out}m\"; " +
             "  test -f /tmp/qs-toggle-cc && rm /tmp/qs-toggle-cc && out=\"${out}c\"; " +
             "  test -f /tmp/qs-productivity && rm /tmp/qs-productivity && out=\"${out}d\"; " +
@@ -129,7 +125,6 @@ Item {
                 var flags = data.trim()
                 if (flags.indexOf("p") >= 0 && !island.showAppLauncher) island.showPowerSection = !island.showPowerSection
                 if (flags.indexOf("a") >= 0 && !island.showPowerSection && !activityManager.activeActivity) island.showAppLauncher = true
-                if (flags.indexOf("w") >= 0) island.showWallpaperMenu = !island.showWallpaperMenu
                 if (flags.indexOf("m") >= 0) {
                     modeSvc.cycleMode();
                     island.showModeIndicator();
