@@ -176,8 +176,16 @@ check "OverlayRoot wires activityDismissed" \
 check "NotificationService has notificationReceived signal" \
   "grep -q 'signal notificationReceived' '$ROOT/services/NotificationService.qml'"
 
+# PrivacyService uses source-outputs for mic detection
+check "PrivacyService uses source-outputs for mic" \
+  "grep -q 'source-outputs' '$ROOT/services/PrivacyService.qml'"
+
+# Battery alert debounce: extends existing alert instead of pushing duplicate
+check "Battery alert extends existing timer" \
+  "grep -q 'cur.dismissAt = Date.now' '$ROOT/overlay/DynamicIsland.qml'"
+
 # Initial battery/charging check after _ready
-check "DynamicIsland checks initial charging state on _ready" \
+check_not "DynamicIsland does not push battery alert on _ready" \
   "grep -q 'statusSvc.charging.*pushBatteryAlert.*charging' '$ROOT/overlay/DynamicIsland.qml'"
 
 # Case-insensitive battery status comparison (upower uses lowercase)

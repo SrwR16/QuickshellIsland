@@ -58,10 +58,6 @@ Rectangle {
     interval: 1000; running: true; repeat: false
     onTriggered: {
       _ready = true;
-      if (statusSvc) {
-        if (statusSvc.charging) pushBatteryAlert("charging");
-        else if (!statusSvc.charging && statusSvc.battery <= 20) pushBatteryAlert("low");
-      }
     }
   }
 
@@ -194,7 +190,13 @@ Rectangle {
 
   function pushBatteryAlert(mode) {
     if (activityManager && _ready) {
-      if (!activityManager.activeActivity || activityManager.activeActivity.priority >= activityManager.priorityTimeSensitive) {
+      var cur = activityManager.activeActivity;
+      if (cur && cur.type === "battery") {
+        cur.dismissAt = Date.now() + 2000;
+        cur.data.mode = mode;
+        return;
+      }
+      if (!cur || cur.priority >= activityManager.priorityTimeSensitive) {
         activityManager.dismissByType("battery");
         activityManager.push("battery", { mode: mode }, activityManager.priorityPassive, 2000);
       }

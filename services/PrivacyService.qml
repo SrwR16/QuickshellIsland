@@ -16,7 +16,7 @@ Item {
             "sh", "-c",
             "while true; do " +
             "  w=0; fuser /dev/video* 2>/dev/null | grep -q . && w=1; " +
-            "  m=0; pactl list sources 2>/dev/null | awk '/^Source / {if(r && !mo) {print 1; exit}; mo=0; r=0} /Name: .*\\.monitor/ {mo=1} /State: RUNNING/ {r=1} END {if(r && !mo) print 1}' | grep -q 1 && m=1; " +
+              "  m=0; pactl list source-outputs 2>/dev/null | grep -q 'State: RUNNING' && m=1; " +
             "  echo \"$w,$m\"; " +
             "  echo \"$w,$m\" > /tmp/quickshell_privacy.log; " +
             "  sleep 2; " +
