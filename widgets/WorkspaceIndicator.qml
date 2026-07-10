@@ -26,8 +26,7 @@ Item {
           list.push(ws)
       }
       list.sort(function(a, b) { return a.id - b.id })
-      if (list.length !== items.length || JSON.stringify(list.map(function(w) { return w.id })) !== JSON.stringify(items.map(function(w) { return w.id })))
-        items = list
+      items = list
     } catch (e) {}
   }
 

@@ -27,10 +27,10 @@ QtObject {
     command: [
       "sh", "-c",
       "get_bat() { " +
-      "  upower -i /org/freedesktop/UPower/devices/DisplayDevice | awk '/percentage:/ {p=$2} /state:/ {s=$2} END {gsub(/%/,\"\",p); print \"BAT:\" (p?p:0) \":\" (s?s:\"Unknown\")}' 2>/dev/null; " +
+      "  upower -i /org/freedesktop/UPower/devices/DisplayDevice 2>/dev/null | awk '/percentage:/ {p=$2} /state:/ {s=$2} END {gsub(/%/,\"\",p); print \"BAT:\" (p?p:0) \":\" (s?s:\"Unknown\")}'; " +
       "}; " +
       "get_bat; " +
-      "dbus-monitor --system \"type='signal',interface='org.freedesktop.DBus.Properties',path='/org/freedesktop/UPower/devices/DisplayDevice'\" 2>/dev/null | while read -r line; do " +
+      "dbus-monitor --system \"type='signal',interface='org.freedesktop.DBus.Properties'\" 2>/dev/null | while read -r line; do " +
       "  get_bat; " +
       "done"
     ]

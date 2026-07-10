@@ -190,6 +190,7 @@ Rectangle {
   property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerSection || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
 
   property string _pendingBatteryMode: ""
+  property bool _suppressMorph: false
 
   function pushBatteryAlert(mode) {
     if (!activityManager || !_ready) return
@@ -210,10 +211,35 @@ Rectangle {
   }
 
   onIsExpandedChanged: {
-    if (!clockWidget.isExpanded && clockWidget._pendingBatteryMode) {
-      var m = clockWidget._pendingBatteryMode
-      clockWidget._pendingBatteryMode = ""
-      clockWidget.pushBatteryAlert(m)
+    if (clockWidget.isExpanded) {
+      collapseDelayTimer.stop()
+      clockWidget._suppressMorph = false
+      if (clockWidget.showBatteryAlert && activityManager && activityManager.activeActivity && activityManager.activeActivity.type === "battery") {
+        clockWidget._pendingBatteryMode = activityManager.activeActivity.data.mode || "charging"
+        activityManager.dismissByType("battery")
+      }
+    } else {
+      clockWidget._suppressMorph = true
+      if (clockWidget._pendingBatteryMode || (activityManager && activityManager.activeActivity)) {
+        collapseDelayTimer.restart()
+      } else {
+        clockWidget._suppressMorph = false
+      }
+    }
+  }
+
+  Timer {
+    id: collapseDelayTimer
+    interval: 600
+    onTriggered: {
+      clockWidget._suppressMorph = false
+      if (clockWidget._pendingBatteryMode && !clockWidget.showBatteryAlert) {
+        var m = clockWidget._pendingBatteryMode
+        clockWidget._pendingBatteryMode = ""
+        clockWidget.pushBatteryAlert(m)
+      } else {
+        clockWidget._pendingBatteryMode = ""
+      }
     }
   }
 
@@ -337,8 +363,8 @@ Rectangle {
                               : showSys ? "sys" 
                                : showPowerSection ? "powerSection" 
                               : showPomodoro ? "pomodoro" 
-                             : activityManager && activityManager.activeActivity ? _queueState(activityManager.activeActivity.type)
-                            : "default"
+                              : activityManager && activityManager.activeActivity && !clockWidget.isExpanded && !clockWidget._suppressMorph ? _queueState(activityManager.activeActivity.type)
+                             : "default"
 
   function _queueState(type) {
     if (type === "notification") return "notification"
@@ -403,8 +429,8 @@ Rectangle {
     },
     State {
       name: "batteryAlert"
-      PropertyChanges { target: clockWidget; height: 48; width: 220; radius: 24 }
-    }
+      PropertyChanges { target: clockWidget; height: 72; width: 360; radius: 24 }
+    },
   ]
 
   color: Theme.background
@@ -466,7 +492,7 @@ Rectangle {
     anchors.right: parent.right
     height: 36
 
-    opacity: clockWidget.isExpanded || clockWidget.mode !== "default" || clockWidget.anyOverlayActive ? 0.0 : 1.0
+    opacity: clockWidget.isExpanded || clockWidget.mode !== "default" || (clockWidget.anyOverlayActive && !clockWidget.showBatteryAlert) ? 0.0 : 1.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 200 } }
 
@@ -591,6 +617,7 @@ Rectangle {
         }
       }
     }
+
   }
 
   // --- Collapsed: volume / brightness indicator ---
@@ -823,7 +850,7 @@ Rectangle {
     anchors.leftMargin: 16
     anchors.rightMargin: 16
 
-    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showingNotification && !clockWidget.showPomodoro && !clockWidget.showMovies && !clockWidget.showSys && !clockWidget.showBatteryAlert && !clockWidget.showTray ? 1.0 : 0.0
+    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showPomodoro && !clockWidget.showMovies && !clockWidget.showSys && !clockWidget.showTray ? 1.0 : 0.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
@@ -1011,29 +1038,31 @@ Rectangle {
     }
   }
 
-  // --- Battery Alert expanded overlay ---
+  // --- Battery Alert overlay (below clock, only when collapsed) ---
   Item {
-    id: batteryAlertExpandedContent
-    anchors.fill: parent
-    anchors.margins: 12
+    id: batteryAlertOverlay
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: collapsedContent.bottom
+    anchors.bottom: parent.bottom
 
-    opacity: clockWidget.showBatteryAlert ? 1.0 : 0.0
+    opacity: clockWidget.showBatteryAlert && !clockWidget.isExpanded ? 1.0 : 0.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
     RowLayout {
       anchors.centerIn: parent
-      spacing: 12
-      
+      spacing: 10
+
       Item {
-        width: 48; height: 22
+        width: 36; height: 18
         Layout.alignment: Qt.AlignVCenter
 
         Rectangle {
           anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
-          width: 42; height: 20
-          radius: 6
+          width: 32; height: 16
+          radius: 4
           color: "transparent"
           border.color: Theme.text
           border.width: 1
@@ -1043,20 +1072,20 @@ Rectangle {
         Rectangle {
           anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
-          anchors.margins: 3
-          anchors.leftMargin: 3
-          height: 14
-          width: Math.max(0, 36 * ((clockWidget.statusSvc ? clockWidget.statusSvc.battery : 0) / 100))
-          radius: 3
+          anchors.margins: 2
+          anchors.leftMargin: 2
+          height: 12
+          width: Math.max(0, 28 * ((clockWidget.statusSvc ? clockWidget.statusSvc.battery : 0) / 100))
+          radius: 2
           color: clockWidget.batteryAlertMode === "charging" ? Theme.primary : (clockWidget.batteryAlertMode === "low" ? Theme.error : Theme.text)
         }
 
         Rectangle {
           anchors.left: parent.left
-          anchors.leftMargin: 43
+          anchors.leftMargin: 33
           anchors.verticalCenter: parent.verticalCenter
-          width: 4; height: 8
-          radius: 2
+          width: 3; height: 6
+          radius: 1.5
           color: Theme.text
           opacity: 0.4
         }
@@ -1064,7 +1093,7 @@ Rectangle {
         Text {
           anchors.centerIn: parent
           text: "󱐋"
-          font { family: "JetBrainsMono Nerd Font"; pixelSize: 13 }
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 11 }
           visible: clockWidget.batteryAlertMode === "charging"
           color: Theme.background
           z: 1
@@ -1074,14 +1103,14 @@ Rectangle {
         text: clockWidget.batteryAlertMode === "charging" ? "Charging" : (clockWidget.batteryAlertMode === "low" ? "Battery Low" : "Unplugged")
         color: Theme.text
         font.family: "Inter"
-        font.pixelSize: 14
+        font.pixelSize: 13
         font.weight: 600
       }
       Text {
         text: (clockWidget.statusSvc ? clockWidget.statusSvc.battery : 0) + "%"
         color: clockWidget.batteryAlertMode === "charging" ? Theme.primary : (clockWidget.batteryAlertMode === "low" ? Theme.error : Theme.text)
         font.family: "Inter"
-        font.pixelSize: 14
+        font.pixelSize: 13
         font.weight: 600
       }
     }
