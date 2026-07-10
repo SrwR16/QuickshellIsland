@@ -4,6 +4,7 @@ import "../services"
 import "../theme"
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Layouts
@@ -813,15 +814,20 @@ Rectangle {
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
-    MediaSection {
-      id: mediaSectionItem
+    Item {
+      id: workspaceArea
       anchors.left: parent.left
+      anchors.right: centerSection.left
+      anchors.rightMargin: 8
       anchors.verticalCenter: parent.verticalCenter
-      trackTitle: media.title
-      trackArtist: media.artist
-      trackArt: media.art
-      mediaState: media.mediaState
-      barHeights: media.bars
+      height: 28
+      clip: true
+
+      WorkspaceIndicator {
+        id: workspaceIndicator
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+      }
     }
 
     Item {

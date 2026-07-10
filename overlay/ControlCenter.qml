@@ -32,7 +32,7 @@ Item {
     implicitHeight: Math.min(controlCenter.page === "main" ? mainPageHeightHint : 560, 800)
     
     property real mainPageHeightHint: 290
-        + (controlCenter.activePlayer ? 160 : 0)
+        + (controlCenter.activePlayer && controlCenter.activePlayer.trackTitle ? 80 : 32)
         + 30
         + 50
         + 30
@@ -564,8 +564,17 @@ Item {
         running: true
         stdout: SplitParser {
             onRead: (data) => {
-                playerctlData.isPlaying = data.trim() === "Playing"
-                playerctlData.fetch()
+                var s = data.trim()
+                if (s !== "Playing" && s !== "Paused") {
+                    playerctlData.isPlaying = false
+                    playerctlData.trackTitle = ""
+                    playerctlData.trackArtist = ""
+                    playerctlData.artUrl = ""
+                    playerArt = ""
+                } else {
+                    playerctlData.isPlaying = s === "Playing"
+                    playerctlData.fetch()
+                }
             }
         }
     }
