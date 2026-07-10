@@ -78,60 +78,54 @@ A temperature watchdog polls CPU temp every 8 seconds and force-reverts to Balan
 
 ### Overview (Workspace Switcher)
 
-- Full-screen workspace overview (like macOS Mission Control) — `Super+Tab`
+- Full-screen workspace overview (like macOS Mission Control) — `qs -p overview.qml`
 - Per-monitor layout with workspace thumbnails
 - Glassmorphism effects, configurable grid
-- Toggle via `echo o > ~/.config/quickshell/qs-overview`
+- Runs as a standalone process (zero idle memory), quits on Escape
 
 ### Movie & TV Finder
 
-- Full-screen movie/TV search and streaming source finder — `echo v > ~/.config/quickshell/qs-movie`
+- Full-screen movie/TV search and streaming source finder — `qs -p movie.qml`
 - Browse trending movies and TV shows, search by title
 - Automatic source checking across multiple streaming providers
-- Opens as an in-process overlay (no separate process)
+- Runs as a standalone process (zero idle memory), quits on Escape
 
 ### Wallpaper Picker
 
-- In-process wallpaper picker overlay — `echo w > ~/.config/quickshell/qs-wallpaper`
+- Standalone wallpaper picker — `qs -p wallpaper-picker.qml`
 - Scans `~/Pictures/Wallpapers/` for images
 - Applies via `awww` (fallback: `feh`)
 - Generates Material You color palette with `matugen` (live-updates the Theme singleton)
+- Runs as a standalone process, quits on picking or Escape
 
 ## Architecture
 
 ```
-shell.qml (entrypoint)
+shell.qml (main process)
 ├── NotificationService
-├── PanelWindow (top bar, layer: Normal)
-│   └── Clock → ClockWidget (Dynamic Island)
-│       ├── MediaService (playerctl + cava)
-│       ├── StatusService (sysfs + nmcli)
-│       ├── MediaSection (album art + track info + bars)
-│       ├── StatusCapsule (WiFi + battery)
-│       ├── PowerMenu (Logout/Lock/Sleep/Reboot/Shutdown)
-│       ├── WallpaperGrid + WallpaperService
-│       ├── AppLauncher + AppLauncherService
-│       ├── NotificationBanner
-│       └── PasswordAskpassDialog + AskpassService
-├── PanelWindow (overlay, app launcher popup)
-├── IPC Process (polls ~/.config/quickshell/qs-* trigger files)
-├── WallpaperService
+├── PanelWindow (Dynamic Island + all overlays)
+│   ├── DynamicIsland (clock, media, status, power menu, etc.)
+│   ├── Search (app launcher)
+│   ├── ControlCenter (audio, WiFi, Bluetooth, night light, mode)
+│   └── IPC Process (polls $XDG_RUNTIME_DIR/qs-* trigger files)
 ├── AppLauncherService
 ├── ModeService (power/fan/GPU profiles + temp watchdog)
 ├── AskpassService
-└── ControlCenter (PanelWindow, overlay layer)
-    ├── Audio page (Pipewire)
-    ├── WiFi page (nmcli)
-    ├── Bluetooth page (BlueZ)
-    ├── Night Light page (gammastep)
-    └── Mode page (performance profiles)
+
+Standalone processes (zero idle memory, launched via qs -p):
+├── overview.qml → Overview (workspace switcher, Super+Tab)
+├── movie.qml → MovieWidget (movie/TV finder, Super+P)
+└── wallpaper-picker.qml → WallpaperGrid + WallpaperService (Super+W)
 ```
 
 ### Project Structure
 
 ```
 .
-├── shell.qml                  # Entrypoint — ShellRoot + PanelWindows + IPC
+├── shell.qml                  # Entrypoint — main quickshell process
+├── movie.qml                  # Standalone entrypoint — MovieWidget (qs -p)
+├── overview.qml               # Standalone entrypoint — Overview (qs -p)
+├── wallpaper-picker.qml       # Standalone entrypoint — WallpaperGrid (qs -p)
 ├── core/
 │   ├── Theme.qml              # Singleton color palette (Material You)
 │   ├── Fonts.qml              # Singleton fonts (Inter + JetBrainsMono Nerd Font)
@@ -152,6 +146,7 @@ shell.qml (entrypoint)
 │   ├── ControlCenter.qml      # Main overlay panel (832 lines)
 │   ├── components/            # ToggleTile, IconSlider, PageHeader, WifiPasswordDialog
 │   └── pages/                 # MainPage, WifiPage, BluetoothPage, AudioPage, NightLightPage, ModePage
+├── Overview/                  # Standalone overview module (workspace switcher)
 ├── scripts/
 │   ├── wallpaper.sh           # Apply wallpaper + matugen color gen
 │   ├── nightlight.sh          # gammastep wrapper (off/manual/auto)
@@ -315,31 +310,38 @@ export SSH_ASKPASS_REQUIRE=force
 
 ### 6. (Optional) Keyboard shortcuts
 
-The config watches for trigger files in `~/.config/quickshell/`:
+The main process watches for trigger files in `$XDG_RUNTIME_DIR` (defaults to `/tmp/runtime-$USER`):
 
-| File | Action |
-|---|---|
-| `qs-power-menu` (write `p`) | Toggle power menu |
-| `qs-app-launcher` (write `a`) | Toggle app launcher |
-| `qs-mode-cycle` (write `m`) | Cycle silent → balanced → performance |
-| `qs-toggle-cc` (write `c`) | Toggle control center |
-| `qs-overview` (write `o`) | Toggle workspace overview |
-| `qs-wallpaper` (write `w`) | Toggle wallpaper picker |
-| `qs-movie` (write `v`) | Toggle movie/TV finder |
+| File | Action | Keybind |
+|---|---|---|
+| `qs-power-menu` (write `p`) | Toggle power menu | `$mod+Q` |
+| `qs-app-launcher` (write `a`) | Toggle app launcher | `$mod+Space` |
+| `qs-mode-cycle` (write `m`) | Cycle silent → balanced → performance | `$mod+M` |
+| `qs-toggle-cc` (write `c`) | Toggle control center | `$mod+C` |
+
+Standalone launchers (separate `qs` process, zero idle memory):
+
+| Entrypoint | Action | Keybind |
+|---|---|---|
+| `qs -p overview.qml` | Workspace overview | `$mod+Tab` |
+| `qs -p movie.qml` | Movie/TV finder | `$mod+P` |
+| `qs -p wallpaper-picker.qml` | Wallpaper picker | `$mod+W` |
 
 Hyprland keybinds:
 
 ```conf
-bind = $mod, Q, exec, echo p > ~/.config/quickshell/qs-power-menu
-bind = $mod, Space, exec, echo a > ~/.config/quickshell/qs-app-launcher
-bind = $mod, M, exec, echo m > ~/.config/quickshell/qs-mode-cycle
-bind = $mod, C, exec, echo c > ~/.config/quickshell/qs-toggle-cc
-bind = $mod, Tab, exec, echo o > ~/.config/quickshell/qs-overview
-bind = $mod, W, exec, echo w > ~/.config/quickshell/qs-wallpaper
-bind = $mod, P, exec, echo v > ~/.config/quickshell/qs-movie
+# IPC flags — $XDG_RUNTIME_DIR is typically /run/user/$UID
+bind = $mod, Q, exec, echo p > $XDG_RUNTIME_DIR/qs-power-menu
+bind = $mod, Space, exec, echo a > $XDG_RUNTIME_DIR/qs-app-launcher
+bind = $mod, M, exec, echo m > $XDG_RUNTIME_DIR/qs-mode-cycle
+bind = $mod, C, exec, echo c > $XDG_RUNTIME_DIR/qs-toggle-cc
+# Standalone processes
+bind = $mod, Tab, exec, qs -p ~/.config/quickshell/overview.qml
+bind = $mod, P, exec, qs -p ~/.config/quickshell/movie.qml
+bind = $mod, W, exec, qs -p ~/.config/quickshell/wallpaper-picker.qml
 ```
 
-Built-in: `Alt+Q` (power menu), `Alt+F5` (mode cycle), and `Super+Tab` (overview via `qs-overview`) using Qt `ApplicationShortcut`.
+Built-in: `Alt+Q` (power menu) and `Alt+F5` (mode cycle) using Qt `ApplicationShortcut`.
 
 ### 7. (Optional) Wallpaper directory
 

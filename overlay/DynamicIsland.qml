@@ -296,24 +296,6 @@ Rectangle {
     }
   }
 
-  // --- Wallpaper menu lifecycle ---
-  onShowWallpaperMenuChanged: {
-    if (showWallpaperMenu) {
-      exclusiveOpen("wallpaper");
-      if (activityManager) activityManager.dismissAll();
-      if (wallpaperMenuTimer) wallpaperMenuTimer.restart();
-      if (wallpaperSvc) wallpaperSvc.rescan();
-    }
-  }
-
-  onWallpaperMenuHoveredChanged: {
-    if (wallpaperMenuHovered && wallpaperMenuTimer.running) {
-      wallpaperMenuTimer.stop();
-    } else if (!wallpaperMenuHovered && showWallpaperMenu) {
-      wallpaperMenuTimer.restart();
-    }
-  }
-
   // --- Notification lifecycle (via ActivityManager) ---
   readonly property bool notifHovered: (mouseArea && mouseArea.containsMouse) || (statusCapsule && statusCapsule.isHovered) || (notifBanner && notifBanner.bannerHovered)
 

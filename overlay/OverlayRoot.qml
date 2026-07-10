@@ -2,7 +2,6 @@ import "../overlay"
 import "../widgets"
 import "../services"
 import "../theme"
-import "../Overview/services"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -12,9 +11,7 @@ import Quickshell.Wayland
 Item {
     id: overlayRoot
     
-    property bool showMovieWidget: false
-    property bool showWallpaperPicker: false
-    property bool anyActive: island.anyOverlayActive || island.showControlCenter || island.showAppLauncher || island.showPowerSection || showMovieWidget || showWallpaperPicker
+    property bool anyActive: island.anyOverlayActive || island.showControlCenter || island.showAppLauncher || island.showPowerSection
     property int islandHeight: island.height
     property alias island: island
 
@@ -40,7 +37,6 @@ Item {
     PrivacyService { id: privacySvc }
     VpnService { id: vpnSvc }
     HardwareMonitor { id: hwMonitor }
-    WallpaperService { id: wallpaperSvc }
 
     // Transparent background interceptor for closing menus when clicking outside
     MouseArea {
@@ -65,7 +61,6 @@ Item {
             island.isPinned = false;
             island.showProductivity = false;
             island.showAppLauncher = false;
-            overlayRoot.showWallpaperPicker = false;
         }
     }
 
@@ -108,90 +103,13 @@ Item {
         }
     }
 
-    // Wallpaper picker overlay
-    Item {
-        z: 30
-        anchors.fill: parent
-        visible: overlayRoot.showWallpaperPicker
-        opacity: overlayRoot.showWallpaperPicker ? 1.0 : 0.0
-        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuart } }
-
-        Rectangle {
-            anchors.fill: parent
-            color: Theme.background
-            opacity: 0.55
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: overlayRoot.showWallpaperPicker = false
-        }
-
-        Rectangle {
-            id: wpPanel
-            readonly property real maxWidth: Math.min(parent.width * 0.85, 760)
-            readonly property real maxHeight: Math.min(parent.height * 0.8, 540)
-            width: maxWidth
-            height: maxHeight
-            radius: 20
-            color: Theme.surface
-            border.width: 1
-            border.color: Theme.border
-            anchors.centerIn: parent
-
-            Keys.onEscapePressed: overlayRoot.showWallpaperPicker = false
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 16
-                spacing: 12
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-                    Text { text: "󰸉"; color: Theme.tertiary; font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 } }
-                    Text { text: "Wallpapers"; color: Theme.text; font { family: "Inter"; pixelSize: 16; weight: Font.Bold }; Layout.fillWidth: true }
-                    Text {
-                        text: "✕"; color: Theme.text; opacity: 0.5; font.pixelSize: 14
-                        MouseArea { anchors.fill: parent; anchors.margins: -8; cursorShape: Qt.PointingHandCursor; onClicked: overlayRoot.showWallpaperPicker = false }
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true; Layout.fillHeight: true; radius: 12; color: Theme.surfaceDim; clip: true
-                    WallpaperGrid {
-                        anchors.fill: parent; anchors.margins: 10
-                        wallpaperModel: wallpaperSvc.wallpapers
-                        wallService: wallpaperSvc
-                        onWallpaperChosen: overlayRoot.showWallpaperPicker = false
-                    }
-                }
-            }
-        }
-    }
-
-    // Movie finder overlay
-    Item {
-        z: 30
-        anchors.fill: parent
-        visible: overlayRoot.showMovieWidget
-        opacity: overlayRoot.showMovieWidget ? 1.0 : 0.0
-        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuart } }
-
-        MovieWidget {
-            anchors.fill: parent
-            Keys.onEscapePressed: overlayRoot.showMovieWidget = false
-            onCloseRequested: overlayRoot.showMovieWidget = false
-        }
-    }
-
     Process {
         id: ipcChecker
         running: true
         command: ["stdbuf", "-oL", "sh", "-c",
             "while true; do " +
             "  out=''; " +
-            "  IPC_DIR=\"$HOME/.config/quickshell\"; " +
+            "  IPC_DIR=\"${XDG_RUNTIME_DIR:-/tmp/runtime-$USER}\"; " +
             "  test -f \"$IPC_DIR/qs-power-menu\" && rm \"$IPC_DIR/qs-power-menu\" && out=\"${out}p\"; " +
             "  test -f \"$IPC_DIR/qs-app-launcher\" && rm \"$IPC_DIR/qs-app-launcher\" && out=\"${out}a\"; " +
             "  test -f \"$IPC_DIR/qs-mode-cycle\" && rm \"$IPC_DIR/qs-mode-cycle\" && out=\"${out}m\"; " +
@@ -200,9 +118,6 @@ Item {
             "  test -f \"$IPC_DIR/qs-pomodoro\" && rm \"$IPC_DIR/qs-pomodoro\" && out=\"${out}f\"; " +
             "  test -f \"$IPC_DIR/qs-sys\" && rm \"$IPC_DIR/qs-sys\" && out=\"${out}s\"; " +
             "  test -f \"$IPC_DIR/qs-tray\" && rm \"$IPC_DIR/qs-tray\" && out=\"${out}t\"; " +
-            "  test -f \"$IPC_DIR/qs-overview\" && rm \"$IPC_DIR/qs-overview\" && out=\"${out}o\"; " +
-            "  test -f \"$IPC_DIR/qs-wallpaper\" && rm \"$IPC_DIR/qs-wallpaper\" && out=\"${out}w\"; " +
-            "  test -f \"$IPC_DIR/qs-movie\" && rm \"$IPC_DIR/qs-movie\" && out=\"${out}v\"; " +
             "  if [ -n \"$out\" ]; then echo \"$out\"; fi; " +
             "  inotifywait -qq -t 2 -e create,modify \"$IPC_DIR\" 2>/dev/null || sleep 0.2; " +
             "done"
@@ -221,9 +136,6 @@ Item {
                 if (flags.indexOf("f") >= 0) island.showPomodoro = !island.showPomodoro;
                 if (flags.indexOf("s") >= 0) island.showSys = !island.showSys;
                 if (flags.indexOf("t") >= 0) island.showTray = !island.showTray;
-                if (flags.indexOf("o") >= 0) GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
-                if (flags.indexOf("w") >= 0) { wallpaperSvc.rescan(); overlayRoot.showWallpaperPicker = !overlayRoot.showWallpaperPicker }
-                if (flags.indexOf("v") >= 0) overlayRoot.showMovieWidget = !overlayRoot.showMovieWidget;
             }
         }
     }
