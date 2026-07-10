@@ -189,18 +189,31 @@ Rectangle {
   property string batteryAlertMode: showBatteryAlert ? activityManager.activeActivity.data.mode : "charging"
   property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerSection || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
 
+  property string _pendingBatteryMode: ""
+
   function pushBatteryAlert(mode) {
-    if (activityManager && _ready) {
-      var cur = activityManager.activeActivity;
-      if (cur && cur.type === "battery") {
-        cur.dismissAt = Date.now() + 2000;
-        cur.data.mode = mode;
-        return;
-      }
-      if (!cur || cur.priority >= activityManager.priorityTimeSensitive) {
-        activityManager.dismissByType("battery");
-        activityManager.push("battery", { mode: mode }, activityManager.priorityPassive, 2000);
-      }
+    if (!activityManager || !_ready) return
+    if (clockWidget.isExpanded && !clockWidget.showBatteryAlert) {
+      clockWidget._pendingBatteryMode = mode
+      return
+    }
+    if (clockWidget.showBatteryAlert && activityManager.activeActivity && activityManager.activeActivity.type === "battery") {
+      activityManager.activeActivity.dismissAt = Date.now() + 2000
+      activityManager.activeActivity.data.mode = mode
+      return
+    }
+    var cur = activityManager.activeActivity
+    if (!cur || cur.priority >= activityManager.priorityTimeSensitive) {
+      activityManager.dismissByType("battery")
+      activityManager.push("battery", { mode: mode }, activityManager.priorityPassive, 2000)
+    }
+  }
+
+  onIsExpandedChanged: {
+    if (!clockWidget.isExpanded && clockWidget._pendingBatteryMode) {
+      var m = clockWidget._pendingBatteryMode
+      clockWidget._pendingBatteryMode = ""
+      clockWidget.pushBatteryAlert(m)
     }
   }
 
