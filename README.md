@@ -85,15 +85,14 @@ A temperature watchdog polls CPU temp every 8 seconds and force-reverts to Balan
 
 ### Movie & TV Finder
 
-- Full-screen movie/TV search and streaming source finder — `Super+P`
+- Full-screen movie/TV search and streaming source finder — `echo v > /tmp/qs-movie`
 - Browse trending movies and TV shows, search by title
 - Automatic source checking across multiple streaming providers
-- Opens in a standalone window (zero idle memory): `qs -p widgets/MoviePicker.qml`
+- Opens as an in-process overlay (no separate process)
 
 ### Wallpaper Picker
 
-- Standalone wallpaper picker — `Super+W`
-- Opens in a centered FloatingWindow, exits after picking (zero idle memory)
+- In-process wallpaper picker overlay — `echo w > /tmp/qs-wallpaper`
 - Scans `~/Pictures/Wallpapers/` for images
 - Applies via `awww` (fallback: `feh`)
 - Generates Material You color palette with `matugen` (live-updates the Theme singleton)
@@ -325,8 +324,8 @@ The config watches these trigger files (polled every 50ms):
 | `/tmp/qs-mode-cycle` (write `m`) | Cycle silent → balanced → performance |
 | `/tmp/qs-toggle-cc` (write `c`) | Toggle control center |
 | `/tmp/qs-overview` (write `o`) | Toggle workspace overview |
-| `qs -p movie.qml` | Open movie/TV finder (standalone) |
-| `qs -p widgets/WallpaperPicker.qml` | Open wallpaper picker (standalone) |
+| `/tmp/qs-wallpaper` (write `w`) | Toggle wallpaper picker |
+| `/tmp/qs-movie` (write `v`) | Toggle movie/TV finder |
 
 Hyprland keybinds:
 
@@ -336,11 +335,11 @@ bind = $mod, Space, exec, echo a > /tmp/qs-app-launcher
 bind = $mod, M, exec, echo m > /tmp/qs-mode-cycle
 bind = $mod, C, exec, echo c > /tmp/qs-toggle-cc
 bind = $mod, Tab, exec, echo o > /tmp/qs-overview
-bind = $mod, P, exec, qs -p ~/.config/quickshell/movie.qml
-bind = $mod, W, exec, qs -p ~/.config/quickshell/widgets/WallpaperPicker.qml
+bind = $mod, W, exec, echo w > /tmp/qs-wallpaper
+bind = $mod, P, exec, echo v > /tmp/qs-movie
 ```
 
-Built-in: `Alt+Q` (power menu) and `Alt+F5` (mode cycle) using Qt `ApplicationShortcut`.
+Built-in: `Alt+Q` (power menu), `Alt+F5` (mode cycle), and `Super+Tab` (overview via `/tmp/qs-overview`) using Qt `ApplicationShortcut`.
 
 ### 7. (Optional) Wallpaper directory
 

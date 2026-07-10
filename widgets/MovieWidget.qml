@@ -411,11 +411,12 @@ Item {
             }
         } else if (event.key === Qt.Key_Escape) {
             saveUiState()
-            Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/hypr/scripts/qs_manager.sh", "close"])
+            closeRequested()
             event.accepted = true
         }
     }
 
+    signal closeRequested()
     property bool isKeyboardNav: false
     Timer { id: keyboardNavTimer; interval: 500; repeat: false; onTriggered: window.isKeyboardNav = false }
 
