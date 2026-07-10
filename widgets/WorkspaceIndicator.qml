@@ -88,33 +88,33 @@ Item {
           width: pillWidth
           height: pillHeight
 
+          Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 1
+            width: 12
+            height: 2
+            radius: 1
+            anchors.horizontalCenter: parent.horizontalCenter
+            color: Theme.tertiary
+            visible: index === root.focusedIndex
+          }
+
           Text {
             id: label
             anchors.centerIn: parent
             text: modelData.id
-            color: {
-              if (index === root.focusedIndex) return Theme.tertiary
-              if (mouseArea.containsMouse) return Theme.text
-              return root.windowCount(modelData) > 0 ? Theme.subtext : Theme.muted
-            }
+            color: Theme.text
             font {
               family: "Inter"
               pixelSize: 12
-              weight: index === root.focusedIndex ? Font.Bold : Font.Medium
+              weight: index === root.focusedIndex ? Font.Bold : (root.windowCount(modelData) > 0 ? Font.Medium : Font.Normal)
             }
-          }
-
-          Rectangle {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 1
-            width: label.width + 4
-            height: 2
-            radius: 1
-            color: Theme.tertiary
-            visible: index === root.focusedIndex
-            opacity: mouseArea.containsMouse ? 0.8 : 1.0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
+            opacity: {
+              if (index === root.focusedIndex) return 1.0
+              if (mouseArea.containsMouse) return 1.0
+              return root.windowCount(modelData) > 0 ? 1.0 : 0.5
+            }
+            Behavior on opacity { NumberAnimation { duration: 100 } }
           }
 
           MouseArea {

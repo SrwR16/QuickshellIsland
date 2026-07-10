@@ -31,7 +31,7 @@ QtObject {
       "}; " +
       "get_bat; " +
       "dbus-monitor --system \"type='signal',interface='org.freedesktop.DBus.Properties'\" 2>/dev/null | while read -r line; do " +
-      "  get_bat; " +
+      "  case \"$line\" in *member=PropertiesChanged*) get_bat;; esac; " +
       "done"
     ]
     running: true
