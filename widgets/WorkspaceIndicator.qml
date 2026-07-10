@@ -5,6 +5,8 @@ import "../theme"
 Item {
   id: root
   implicitWidth: col.implicitWidth
+  implicitHeight: col.implicitHeight
+  height: implicitHeight
 
   readonly property int pillSize: 24
   readonly property int pillSpacing: 6

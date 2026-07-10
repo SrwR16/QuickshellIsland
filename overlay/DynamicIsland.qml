@@ -863,8 +863,7 @@ Rectangle {
       anchors.right: centerSection.left
       anchors.rightMargin: 8
       anchors.verticalCenter: parent.verticalCenter
-      height: 28
-      clip: true
+      height: Math.max(28, workspaceIndicator.height + 6)
 
       WorkspaceIndicator {
         id: workspaceIndicator
