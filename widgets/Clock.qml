@@ -15,7 +15,7 @@ Item {
   property var latestNotification: null
   property var latestNotificationData: null
   property var storedNotifications: []
-  property alias showPowerMenu: mainWidget.showPowerMenu
+  property alias showPowerSection: mainWidget.showPowerSection
   property alias showAskpass: mainWidget.showAskpass
   property alias showAppLauncher: mainWidget.showAppLauncher
   property alias showWallpaperMenu: mainWidget.showWallpaperMenu

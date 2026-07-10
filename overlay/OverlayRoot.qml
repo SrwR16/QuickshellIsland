@@ -10,7 +10,7 @@ import Quickshell.Wayland
 Item {
     id: overlayRoot
     
-    property bool anyActive: island.anyOverlayActive || island.showControlCenter || island.showAppLauncher
+    property bool anyActive: island.anyOverlayActive || island.showControlCenter || island.showAppLauncher || island.showPowerSection
     property int islandHeight: island.height
     property alias island: island
 
@@ -50,6 +50,7 @@ Item {
         }
         
         onClicked: {
+            island.showPowerSection = false;
             activityManager.dismissByType("power");
             activityManager.dismissByType("battery");
             island.showWallpaperMenu = false;
@@ -82,6 +83,16 @@ Item {
         privacySvc: privacySvc
         vpnSvc: vpnSvc
         hwMonitor: hwMonitor
+    }
+
+    // --- Power Panel (integrated overlay at same position as island) ---
+    PowerPanel {
+      z: 15
+      showPanel: island.showPowerSection
+      onCloseRequested: island.showPowerSection = false
+      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.top: parent.top
+      anchors.topMargin: 10
     }
 
     // Embed Search (formerly AppLauncher) directly in the same scene graph
@@ -128,8 +139,8 @@ Item {
         stdout: SplitParser {
             onRead: (data) => {
                 var flags = data.trim()
-                if (flags.indexOf("p") >= 0 && !island.showAppLauncher) island.openPowerMenu()
-                if (flags.indexOf("a") >= 0 && !island.showPowerMenu && !activityManager.activeActivity) island.showAppLauncher = true
+                if (flags.indexOf("p") >= 0 && !island.showAppLauncher) island.showPowerSection = !island.showPowerSection
+                if (flags.indexOf("a") >= 0 && !island.showPowerSection && !activityManager.activeActivity) island.showAppLauncher = true
                 if (flags.indexOf("w") >= 0) island.showWallpaperMenu = !island.showWallpaperMenu
                 if (flags.indexOf("m") >= 0) {
                     modeSvc.cycleMode();

@@ -28,7 +28,7 @@ echo "--- File Existence ---"
 check "ActivityManager.qml exists"  "test -f '$ROOT/services/ActivityManager.qml'"
 check "DynamicIsland.qml exists"    "test -f '$ROOT/overlay/DynamicIsland.qml'"
 check "Notifications.qml exists"    "test -f '$ROOT/overlay/Notifications.qml'"
-check "PowerMenu.qml exists"        "test -f '$ROOT/widgets/PowerMenu.qml'"
+check "PowerSection.qml exists"     "test -f '$ROOT/widgets/PowerSection.qml'"
 check "StatusCapsule.qml exists"    "test -f '$ROOT/widgets/StatusCapsule.qml'"
 check "MediaService.qml exists"     "test -f '$ROOT/services/MediaService.qml'"
 check "HardwareMonitor.qml exists"  "test -f '$ROOT/services/HardwareMonitor.qml'"
@@ -93,12 +93,12 @@ check "ActivityManager has pendingCount property" \
 # New states in DynamicIsland (use double quotes in file)
 check "DynamicIsland has 'notification' state" \
   "grep -q 'name: \"notification\"' '$ROOT/overlay/DynamicIsland.qml'"
-check "DynamicIsland has 'power' state" \
-  "grep -q 'name: \"power\"' '$ROOT/overlay/DynamicIsland.qml'"
+check "DynamicIsland has 'powerSection' state" \
+  "grep -q 'name: \"powerSection\"' '$ROOT/overlay/DynamicIsland.qml'"
 check "DynamicIsland has _queueState()" \
   "grep -q 'function _queueState' '$ROOT/overlay/DynamicIsland.qml'"
-check "DynamicIsland has openPowerMenu()" \
-  "grep -q 'function openPowerMenu' '$ROOT/overlay/DynamicIsland.qml'"
+check "DynamicIsland has showPowerSection property" \
+  "grep -q 'property bool showPowerSection' '$ROOT/overlay/DynamicIsland.qml'"
 check "DynamicIsland has pushBatteryAlert()" \
   "grep -q 'function pushBatteryAlert' '$ROOT/overlay/DynamicIsland.qml'"
 check "DynamicIsland has activityManager property" \
@@ -152,9 +152,9 @@ check_not "StatusCapsule has no inline StatusService" \
 check "WifiPage has distinct signal icons" \
   "grep -q '󰤨.*󰤢.*󰤟' '$ROOT/widgets/WifiPage.qml'"
 
-# PowerMenu increased button size
-check "PowerMenu buttons are 56x56" \
-  "grep -q 'width: 56; height: 56; radius: 16' '$ROOT/widgets/PowerMenu.qml'"
+# PowerSection button size
+check "PowerSection buttons are 56x56" \
+  "grep -q 'width: 56; height: 56; radius: 16' '$ROOT/widgets/PowerSection.qml'"
 
 # Notifications no longer has state transitions
 check_not "Notifications has no PropertyChanges" \
@@ -176,9 +176,9 @@ check "OverlayRoot wires activityDismissed" \
 check "NotificationService has notificationReceived signal" \
   "grep -q 'signal notificationReceived' '$ROOT/services/NotificationService.qml'"
 
-# PrivacyService uses source-outputs for mic detection
-check "PrivacyService uses source-outputs for mic" \
-  "grep -q 'source-outputs' '$ROOT/services/PrivacyService.qml'"
+# PrivacyService uses Corked: no for mic detection
+check "PrivacyService uses Corked: no for mic detection" \
+  "grep -q 'Corked: no' '$ROOT/services/PrivacyService.qml'"
 
 # Battery alert debounce: extends existing alert instead of pushing duplicate
 check "Battery alert extends existing timer" \

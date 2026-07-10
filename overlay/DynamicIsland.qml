@@ -11,6 +11,7 @@ import QtQuick.Layouts
 
 Rectangle {
   id: clockWidget
+  clip: true
 
   property QtObject privacySvc
   property QtObject vpnSvc
@@ -27,16 +28,22 @@ Rectangle {
     if (menuName !== "tray") showTray = false;
     if (menuName !== "askpass") showAskpass = false;
     if (menuName !== "prod") showProductivity = false;
+    if (menuName !== "powerSection") showPowerSection = false;
     if (menuName !== "vpn") showVpn = false;
-    if (activityManager) activityManager.dismissAll();
   }
 
   property bool showControlCenter: false
   property bool showVpn: false
+  onShowVpnChanged: {
+    if (showVpn && activityManager) {
+      activityManager.dismissAll();
+    }
+  }
   property bool _prevShowControlCenter: false
   onShowControlCenterChanged: {
     if (showControlCenter) {
       exclusiveOpen("cc");
+      if (activityManager) activityManager.dismissAll();
     } else {
       if (_prevShowControlCenter && activityManager) activityManager.resumeAutoDismiss();
       isPinned = false;
@@ -98,6 +105,7 @@ Rectangle {
   property bool capsLock: hwMonitor ? hwMonitor.capsLock : false
   property bool numLock: hwMonitor ? hwMonitor.numLock : false
   property real kbdBrightness: hwMonitor ? hwMonitor.kbdBrightness : 0
+  property Process brightnessSetProc: Process { command: ["true"]; running: false }
 
   onKbdBrightnessChanged: {
     if (_ready && !clockWidget.isExpanded) {
@@ -133,25 +141,12 @@ Rectangle {
     }
   }
 
-  // --- Power menu (via ActivityManager queue) ---
-  property bool showPowerMenu: activityManager && activityManager.activeActivity && activityManager.activeActivity.type === "power"
-  property bool powerMenuHovered: powerMenuComponent ? powerMenuComponent.hovered : false
-
-  property Process powerActionProc: Process { running: false }
-
-  function openPowerMenu() {
-    if (activityManager) {
-      exclusiveOpen("power");
-      activityManager.dismissByType("notification");
-      activityManager.dismissByType("battery");
-      activityManager.push("power", {}, activityManager.priorityInteractive, 10000, true);
+  property bool showPowerSection: false
+  onShowPowerSectionChanged: {
+    if (showPowerSection) {
+      exclusiveOpen("powerSection");
+      if (activityManager) activityManager.dismissAll();
     }
-  }
-
-  function powerAction(cmd) {
-    powerActionProc.command = cmd;
-    powerActionProc.running = true;
-    if (activityManager) activityManager.dismissByType("power");
   }
 
   // --- Mode indicator ---
@@ -182,11 +177,16 @@ Rectangle {
 
   // --- Battery Alert (via ActivityManager queue) ---
   property bool showProductivity: false
+  onShowProductivityChanged: {
+    if (showProductivity && activityManager) {
+      activityManager.dismissAll();
+    }
+  }
   property string productivityPage: "time"
 
   property bool showBatteryAlert: activityManager && activityManager.activeActivity && activityManager.activeActivity.type === "battery"
   property string batteryAlertMode: showBatteryAlert ? activityManager.activeActivity.data.mode : "charging"
-  property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerMenu || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
+  property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerSection || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
 
   function pushBatteryAlert(mode) {
     if (activityManager && _ready) {
@@ -222,24 +222,28 @@ Rectangle {
   onShowPomodoroChanged: {
     if (showPomodoro) {
       exclusiveOpen("pomodoro");
+      if (activityManager) activityManager.dismissAll();
     }
   }
 
   onShowMoviesChanged: {
     if (showMovies) {
       exclusiveOpen("movies");
+      if (activityManager) activityManager.dismissAll();
     }
   }
 
   onShowSysChanged: {
     if (showSys) {
       exclusiveOpen("sys");
+      if (activityManager) activityManager.dismissAll();
     }
   }
 
   onShowTrayChanged: {
     if (showTray) {
       exclusiveOpen("tray");
+      if (activityManager) activityManager.dismissAll();
     }
   }
 
@@ -252,6 +256,7 @@ Rectangle {
   onShowAppLauncherChanged: {
     if (showAppLauncher) {
       exclusiveOpen("app");
+      if (activityManager) activityManager.dismissAll();
       if (appLauncherTimer) appLauncherTimer.restart();
     }
   }
@@ -268,6 +273,7 @@ Rectangle {
   onShowWallpaperMenuChanged: {
     if (showWallpaperMenu) {
       exclusiveOpen("wallpaper");
+      if (activityManager) activityManager.dismissAll();
       if (wallpaperMenuTimer) wallpaperMenuTimer.restart();
       if (wallpaperSvc) wallpaperSvc.rescan();
     }
@@ -312,16 +318,15 @@ Rectangle {
                             : showWallpaperMenu ? "wallpaperMenu" 
                             : showAskpass ? "askpass" 
                             : showMovies ? "movies" 
-                            : showVpn ? "vpn" 
-                            : showTray ? "tray" 
-                            : showSys ? "sys" 
-                            : showPomodoro ? "pomodoro" 
-                            : activityManager && activityManager.activeActivity ? _queueState(activityManager.activeActivity.type)
+                             : showVpn ? "vpn" 
+                             : showTray ? "tray" 
+                             : showSys ? "sys" 
+                              : showPomodoro ? "pomodoro" 
+                             : activityManager && activityManager.activeActivity ? _queueState(activityManager.activeActivity.type)
                             : "default"
 
   function _queueState(type) {
     if (type === "notification") return "notification"
-    if (type === "power") return "power"
     if (type === "battery") return "batteryAlert"
     return "default"
   }
@@ -366,10 +371,6 @@ Rectangle {
       PropertyChanges { target: clockWidget; height: Math.max(130, notifBanner.bannerHeight); width: 480; radius: 28 }
     },
     State {
-      name: "power"
-      PropertyChanges { target: clockWidget; height: 220; width: 480; radius: 28 }
-    },
-    State {
       name: "tray"
       PropertyChanges { target: clockWidget; height: 120; width: 440; radius: 28 }
     },
@@ -401,8 +402,8 @@ Rectangle {
 
     onClicked: (mouse) => {
       if (clockWidget.showingNotification) return;
-      if (clockWidget.showPowerMenu) {
-        if (clockWidget.activityManager) clockWidget.activityManager.dismissByType("power");
+      if (clockWidget.showPowerSection) {
+        clockWidget.showPowerSection = false;
         return;
       }
       if (clockWidget.showWallpaperMenu) {
@@ -448,7 +449,7 @@ Rectangle {
 
     opacity: clockWidget.isExpanded || clockWidget.mode !== "default" || clockWidget.anyOverlayActive ? 0.0 : 1.0
     visible: opacity > 0.0
-    Behavior on opacity { enabled: !clockWidget.showPowerMenu; NumberAnimation { duration: 200 } }
+    Behavior on opacity { NumberAnimation { duration: 200 } }
 
     property real leftWidth: media.playing ? visualizerContainer.width + 12 : 0
     property real rightWidth: (PomodoroService.sessionState !== "Idle" ? pomodoroRow.implicitWidth + 12 : 0) + (privacyContainer.targetWidth > 0 ? privacyContainer.targetWidth + 12 : 0)
@@ -616,6 +617,22 @@ Rectangle {
         font { family: "Inter"; pixelSize: 13; weight: 700 }
         Behavior on color { ColorAnimation { duration: 120 } }
       }
+
+      MouseArea {
+        anchors.fill: parent
+        onWheel: (wheel) => {
+          var step = 0.05;
+          var sink = clockWidget.audioSink;
+          if (!sink?.audio) return;
+          if (wheel.angleDelta.y > 0) {
+            sink.audio.volume = Math.min(1, sink.audio.volume + step);
+          } else {
+            sink.audio.volume = Math.max(0, sink.audio.volume - step);
+          }
+          sink.audio.muted = false;
+          revertTimer.restart();
+        }
+      }
     }
 
     // Brightness mode
@@ -650,6 +667,22 @@ Rectangle {
         text: Math.round(clockWidget.brightness * 100) + "%"
         color: Theme.text
         font { family: "Inter"; pixelSize: 13; weight: 700 }
+      }
+
+      MouseArea {
+        anchors.fill: parent
+        onWheel: (wheel) => {
+          var step = 0.05;
+          var cur = clockWidget.brightness;
+          if (wheel.angleDelta.y > 0) {
+            cur = Math.min(1, cur + step);
+          } else {
+            cur = Math.max(0, cur - step);
+          }
+          clockWidget.brightnessSetProc.command = ["brightnessctl", "set", Math.round(cur * 100) + "%"];
+          clockWidget.brightnessSetProc.running = true;
+          revertTimer.restart();
+        }
       }
     }
 
@@ -771,7 +804,7 @@ Rectangle {
     anchors.leftMargin: 16
     anchors.rightMargin: 16
 
-    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showingNotification && !clockWidget.showPowerMenu && !clockWidget.showPomodoro && !clockWidget.showMovies && !clockWidget.showSys && !clockWidget.showBatteryAlert && !clockWidget.showTray ? 1.0 : 0.0
+    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showingNotification && !clockWidget.showPomodoro && !clockWidget.showMovies && !clockWidget.showSys && !clockWidget.showBatteryAlert && !clockWidget.showTray ? 1.0 : 0.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
@@ -897,11 +930,7 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onContainsMouseChanged: clockWidget._powerHovered = containsMouse
         onClicked: {
-          if (clockWidget.showPowerMenu) {
-            if (clockWidget.activityManager) clockWidget.activityManager.dismissByType("power");
-          } else {
-            clockWidget.openPowerMenu();
-          }
+          clockWidget.showPowerSection = !clockWidget.showPowerSection;
         }
       }
     }
@@ -1124,18 +1153,6 @@ Rectangle {
         }
       }
     }
-  }
-
-  // --- Power menu overlay ---
-  PowerMenu {
-    id: powerMenuComponent
-    anchors.centerIn: parent
-    width: clockWidget.state === "power" ? parent.width : 0
-    height: clockWidget.state === "power" ? parent.height : 0
-    opacity: clockWidget.showPowerMenu ? 1.0 : 0.0
-    visible: opacity > 0.0
-    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
-    powerAction: clockWidget.powerAction
   }
 
   // --- Wallpaper menu overlay ---
