@@ -13,6 +13,7 @@ Item {
   readonly property int pillSpacing: 4
 
   property var items: []
+  property int focusedIndex: -1
 
   function windowCount(ws) {
     if (!ws || !ws.toplevels) return 0
@@ -33,6 +34,11 @@ Item {
       }
       list.sort(function(a, b) { return a.id - b.id })
       items = list
+
+      focusedIndex = -1
+      for (var j = 0; j < list.length; j++) {
+        if (list[j].focused) { focusedIndex = j; break }
+      }
     } catch (e) {}
   }
 
@@ -77,48 +83,68 @@ Item {
       boundsBehavior: Flickable.StopAtBounds
       flickableDirection: Flickable.HorizontalFlick
 
-      Row {
-        id: row
-        height: parent.height
-        spacing: pillSpacing
+      Item {
+        width: row.width
+        height: row.height
 
-        Repeater {
-          model: root.items
+        Rectangle {
+          id: activeHighlight
+          width: pillWidth
+          height: pillHeight
+          radius: 5
+          color: Theme.primary
+          visible: focusedIndex >= 0
 
-          delegate: Rectangle {
-            id: pill
-            required property var modelData
+          x: focusedIndex >= 0 ? focusedIndex * (pillWidth + pillSpacing) : -100
+          y: 0
+          Behavior on x { NumberAnimation { duration: 200; easing: Easing.OutQuart } }
+        }
 
-            width: pillWidth
-            height: pillHeight
-            radius: 6
-            color: modelData.focused ? Theme.primary : (mouseArea.containsMouse ? Theme.surfaceHover : "transparent")
+        Row {
+          id: row
+          height: parent.height
+          spacing: pillSpacing
 
-            Text {
-              anchors.centerIn: parent
-              text: modelData.id
-              color: modelData.focused ? Theme.onPrimary : (mouseArea.containsMouse ? Theme.text : Theme.muted)
-              font {
-                family: "Inter"
-                pixelSize: 11
-                weight: modelData.focused ? Font.Bold : Font.Medium
+          Repeater {
+            model: root.items
+
+            delegate: Item {
+              id: pill
+              required property var modelData
+
+              width: pillWidth
+              height: pillHeight
+
+              Text {
+                anchors.centerIn: parent
+                text: modelData.id
+                color: {
+                  if (index === root.focusedIndex) return Theme.onPrimary
+                  if (mouseArea.containsMouse) return Theme.text
+                  return root.windowCount(modelData) > 0 ? Theme.text : Theme.muted
+                }
+                font {
+                  family: "Inter"
+                  pixelSize: 11
+                  weight: index === root.focusedIndex ? Font.Bold : Font.Medium
+                }
               }
-            }
 
-            Rectangle {
-              anchors.bottom: parent.bottom
-              anchors.bottomMargin: 2
-              anchors.horizontalCenter: parent.horizontalCenter
-              width: 3; height: 3; radius: 1.5
-              visible: root.windowCount(modelData) > 0 && !modelData.focused
-              color: Theme.primary
-            }
+              Rectangle {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 2
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 3; height: 3; radius: 1.5
+                visible: root.windowCount(modelData) > 0 && index !== root.focusedIndex
+                color: Theme.primary
+              }
 
-            MouseArea {
-              id: mouseArea
-              anchors.fill: parent; anchors.margins: -2
-              hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-              onClicked: Hyprland.dispatch("workspace " + modelData.id)
+              MouseArea {
+                id: mouseArea
+                anchors.fill: parent; anchors.margins: -2
+                hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                onClicked: Hyprland.dispatch("workspace " + modelData.id)
+              }
             }
           }
         }
