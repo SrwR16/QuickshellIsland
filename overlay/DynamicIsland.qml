@@ -631,37 +631,44 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: 200 } }
 
     // Volume mode
-    RowLayout {
-      spacing: 8
+    Item {
       visible: clockWidget.mode === "volume"
+      implicitWidth: volLayout.implicitWidth
+      implicitHeight: volLayout.implicitHeight
 
-      Text {
-        text: clockWidget.volumeIcon(clockWidget.volume, clockWidget.audioMuted)
-        color: clockWidget.audioMuted ? Theme.subtext : Theme.primary
-        font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
-        Behavior on color { ColorAnimation { duration: 120 } }
-      }
+      RowLayout {
+        id: volLayout
+        anchors.fill: parent
+        spacing: 8
 
-      Item {
-        width: 80; height: 6
-        Rectangle {
-          anchors.fill: parent; radius: 3; color: Theme.border
+        Text {
+          text: clockWidget.volumeIcon(clockWidget.volume, clockWidget.audioMuted)
+          color: clockWidget.audioMuted ? Theme.subtext : Theme.primary
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
+          Behavior on color { ColorAnimation { duration: 120 } }
+        }
+
+        Item {
+          width: 80; height: 6
           Rectangle {
-            anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
-            width: parent.width * (clockWidget.audioMuted ? 0 : clockWidget.volume)
-            radius: 3
-            color: clockWidget.audioMuted ? Theme.border : Theme.primary
-            Behavior on width { NumberAnimation { duration: 150; easing: Easing.OutCubic } }
-            Behavior on color { ColorAnimation { duration: 120 } }
+            anchors.fill: parent; radius: 3; color: Theme.border
+            Rectangle {
+              anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
+              width: parent.width * (clockWidget.audioMuted ? 0 : clockWidget.volume)
+              radius: 3
+              color: clockWidget.audioMuted ? Theme.border : Theme.primary
+              Behavior on width { NumberAnimation { duration: 150; easing: Easing.OutCubic } }
+              Behavior on color { ColorAnimation { duration: 120 } }
+            }
           }
         }
-      }
 
-      Text {
-        text: Math.round((clockWidget.audioMuted ? 0 : clockWidget.volume) * 100) + "%"
-        color: clockWidget.audioMuted ? Theme.subtext : Theme.text
-        font { family: "Inter"; pixelSize: 13; weight: 700 }
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Text {
+          text: Math.round((clockWidget.audioMuted ? 0 : clockWidget.volume) * 100) + "%"
+          color: clockWidget.audioMuted ? Theme.subtext : Theme.text
+          font { family: "Inter"; pixelSize: 13; weight: 700 }
+          Behavior on color { ColorAnimation { duration: 120 } }
+        }
       }
 
       MouseArea {
@@ -682,37 +689,44 @@ Rectangle {
     }
 
     // Brightness mode
-    RowLayout {
-      spacing: 8
+    Item {
       visible: clockWidget.mode === "brightness"
+      implicitWidth: briLayout.implicitWidth
+      implicitHeight: briLayout.implicitHeight
 
-      Text {
-        text: clockWidget.brightnessIcon(clockWidget.brightness)
-        color: Qt.rgba(
-          0.89, 0.7 + 0.25 * clockWidget.brightness, 0.25,
-          0.4 + 0.6 * clockWidget.brightness
-        )
-        font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
-        Behavior on color { ColorAnimation { duration: 200 } }
-      }
+      RowLayout {
+        id: briLayout
+        anchors.fill: parent
+        spacing: 8
 
-      Item {
-        width: 80; height: 6
-        Rectangle {
-          anchors.fill: parent; radius: 3; color: Theme.border
+        Text {
+          text: clockWidget.brightnessIcon(clockWidget.brightness)
+          color: Qt.rgba(
+            0.89, 0.7 + 0.25 * clockWidget.brightness, 0.25,
+            0.4 + 0.6 * clockWidget.brightness
+          )
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 18 }
+          Behavior on color { ColorAnimation { duration: 200 } }
+        }
+
+        Item {
+          width: 80; height: 6
           Rectangle {
-            anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
-            width: parent.width * clockWidget.brightness
-            radius: 3; color: Theme.warning
-            Behavior on width { NumberAnimation { duration: 200; easing: Easing.OutCubic } }
+            anchors.fill: parent; radius: 3; color: Theme.border
+            Rectangle {
+              anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
+              width: parent.width * clockWidget.brightness
+              radius: 3; color: Theme.warning
+              Behavior on width { NumberAnimation { duration: 200; easing: Easing.OutCubic } }
+            }
           }
         }
-      }
 
-      Text {
-        text: Math.round(clockWidget.brightness * 100) + "%"
-        color: Theme.text
-        font { family: "Inter"; pixelSize: 13; weight: 700 }
+        Text {
+          text: Math.round(clockWidget.brightness * 100) + "%"
+          color: Theme.text
+          font { family: "Inter"; pixelSize: 13; weight: 700 }
+        }
       }
 
       MouseArea {
@@ -866,7 +880,6 @@ Rectangle {
       WorkspaceIndicator {
         id: workspaceIndicator
         anchors.left: parent.left
-        anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
       }
     }

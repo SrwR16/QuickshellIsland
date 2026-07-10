@@ -5,21 +5,19 @@ import "../theme"
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "WindowRegistry.js" as LayoutMath 
 
 Item {
     id: root
     visible: false
 
     property real currentWidth: 1920.0
-    property real currentHeight: 1080.0 // <-- ADDED
+    property real currentHeight: 1080.0
     property real uiScale: 1.0
 
-    // FIXED: Now passes both Width and Height to respect aspect ratio
-    property real baseScale: LayoutMath.getScale(currentWidth, currentHeight, uiScale)
-    
-    function s(val) { 
-        return LayoutMath.s(val, baseScale); 
+    property real baseScale: uiScale * Math.min(currentWidth / 1920, currentHeight / 1080)
+
+    function s(val) {
+        return val * baseScale;
     }
 
     Process {

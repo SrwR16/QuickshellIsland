@@ -4,7 +4,13 @@ import "../theme"
 
 Item {
   id: root
-  height: 28
+  height: 26
+  implicitWidth: maxPills * (pillWidth + pillSpacing) - pillSpacing + 8
+
+  readonly property int maxPills: 5
+  readonly property int pillWidth: 24
+  readonly property int pillHeight: 20
+  readonly property int pillSpacing: 4
 
   property var items: []
 
@@ -55,7 +61,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    radius: 8
+    radius: 6
     color: Theme.surfaceContainer
     border.color: Theme.border
     border.width: 1
@@ -73,7 +79,7 @@ Item {
       Row {
         id: row
         height: parent.height
-        spacing: 2
+        spacing: pillSpacing
 
         Repeater {
           model: root.items
@@ -82,8 +88,8 @@ Item {
             id: pill
             required property var modelData
 
-            width: 28
-            height: 22
+            width: pillWidth
+            height: pillHeight
             radius: 5
 
             color: modelData.focused ? Theme.primary : (mouseArea.containsMouse ? Theme.surfaceHover : "transparent")
@@ -93,14 +99,18 @@ Item {
               anchors.centerIn: parent
               text: modelData.id
               color: modelData.focused ? Theme.onPrimary : Theme.text
-              font { family: "Inter"; pixelSize: 12; weight: modelData.focused ? Font.Bold : Font.Normal }
+              font {
+                family: "Inter"
+                pixelSize: 11
+                weight: modelData.focused ? Font.Bold : Font.Medium
+              }
             }
 
             Rectangle {
               anchors.bottom: parent.bottom
               anchors.bottomMargin: 2
               anchors.horizontalCenter: parent.horizontalCenter
-              width: 4; height: 4; radius: 2
+              width: 3; height: 3; radius: 1.5
               visible: root.windowCount(modelData) > 0 && !modelData.focused
               color: Theme.primary
             }
