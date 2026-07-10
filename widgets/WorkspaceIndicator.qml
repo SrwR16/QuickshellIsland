@@ -8,40 +8,36 @@ Item {
 
   property var items: []
 
+  function windowCount(ws) {
+    if (!ws || !ws.toplevels) return 0
+    try { return ws.toplevels.values.length } catch (e) { return 0 }
+  }
+
   function update() {
-    var vals = []
-
     try {
-      if (typeof Hyprland !== "undefined" && Hyprland !== null &&
-          typeof Hyprland.workspaces !== "undefined" && Hyprland.workspaces !== null) {
-        vals = Hyprland.workspaces.values || []
-      } else {
-        return
-      }
-    } catch (e) {
-      return
-    }
+      if (!Hyprland || !Hyprland.workspaces) return
+      var vals = Hyprland.workspaces.values
+      if (!vals) return
 
-    var list = []
-    for (var i = 0; i < vals.length; i++) {
-      var ws = vals[i]
-      if (ws && (ws.focused || (ws.toplevels && ws.toplevels.length > 0)))
-        list.push(ws)
-    }
-    list.sort(function(a, b) { return a.id - b.id })
-    items = list
+      var list = []
+      for (var i = 0; i < vals.length; i++) {
+        var ws = vals[i]
+        if (ws && (ws.focused || windowCount(ws) > 0))
+          list.push(ws)
+      }
+      list.sort(function(a, b) { return a.id - b.id })
+      if (list.length !== items.length || JSON.stringify(list.map(function(w) { return w.id })) !== JSON.stringify(items.map(function(w) { return w.id })))
+        items = list
+    } catch (e) {}
   }
 
   Connections {
     target: Hyprland.workspaces
-    enabled: typeof Hyprland !== "undefined" && Hyprland !== null &&
-             typeof Hyprland.workspaces !== "undefined" && Hyprland.workspaces !== null
     function onValuesChanged() { root.update() }
   }
 
   Connections {
     target: Hyprland
-    enabled: typeof Hyprland !== "undefined" && Hyprland !== null
     function onFocusedWorkspaceChanged() { root.update() }
   }
 
@@ -106,7 +102,7 @@ Item {
               anchors.bottomMargin: 2
               anchors.horizontalCenter: parent.horizontalCenter
               width: 4; height: 4; radius: 2
-              visible: modelData.toplevels && modelData.toplevels.length > 0 && !modelData.focused
+              visible: root.windowCount(modelData) > 0 && !modelData.focused
               color: Theme.primary
             }
 
@@ -114,10 +110,7 @@ Item {
               id: mouseArea
               anchors.fill: parent; anchors.margins: -2
               hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                if (typeof Hyprland !== "undefined" && Hyprland !== null)
-                  Hyprland.dispatch("workspace " + modelData.id)
-              }
+              onClicked: Hyprland.dispatch("workspace " + modelData.id)
             }
           }
         }
