@@ -106,6 +106,17 @@ Item {
             width: pillWidth
             height: pillHeight
 
+            Rectangle {
+              anchors.fill: parent
+              radius: 5
+              color: {
+                if (index === root.focusedIndex) return "transparent"
+                if (mouseArea.containsMouse) return Qt.rgba(bgBase.r, bgBase.g, bgBase.b, 0.1)
+                return root.windowCount(modelData) > 0 ? Qt.rgba(bgBase.r, bgBase.g, bgBase.b, 0.15) : "transparent"
+              }
+              property color bgBase: root.windowCount(modelData) > 0 ? Theme.text : Theme.muted
+            }
+
             Text {
               anchors.centerIn: parent
               text: modelData.id
