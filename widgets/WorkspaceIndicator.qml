@@ -4,8 +4,13 @@ import "../theme"
 
 Item {
   id: root
-  height: 22
-  implicitWidth: 5 * (24 + 6) - 6
+  implicitWidth: col.implicitWidth
+
+  readonly property int pillSize: 24
+  readonly property int pillSpacing: 6
+  readonly property int rowSpacing: 4
+  readonly property int firstRowCount: root._count <= 5 ? root._count : Math.ceil(root._count / 2)
+  readonly property int secondRowCount: root._count - firstRowCount
 
   property var _items: []
   property int _focused: -1
@@ -62,37 +67,73 @@ Item {
 
   Component.onCompleted: Qt.callLater(root.update)
 
-  Row {
-    id: row
-    spacing: 6
+  Column {
+    id: col
+    spacing: rowSpacing
     anchors.verticalCenter: parent.verticalCenter
 
-    Repeater {
-      model: root._count
+    Row {
+      spacing: pillSpacing
+      Repeater {
+        model: root.firstRowCount
+        delegate: Item {
+          readonly property int realIndex: index
+          readonly property var ws: root._items.length > realIndex ? root._items[realIndex] : null
+          readonly property bool isActive: realIndex === root._focused
+          readonly property bool hasWindows: ws ? root.windowCount(ws) > 0 : false
 
-      delegate: Item {
-        required property int index
-        readonly property var ws: root._items.length > index ? root._items[index] : null
-        readonly property bool isActive: index === root._focused
-        readonly property bool hasWindows: ws ? root.windowCount(ws) > 0 : false
+          width: pillSize
+          height: pillSize
 
-        width: 24
-        height: 22
+          Rectangle {
+            anchors.fill: parent
+            radius: 6
+            color: isActive ? Theme.tertiary : (hasWindows ? Theme.surfaceContainer : Theme.surface)
+          }
 
-        Rectangle {
-          anchors.fill: parent
-          radius: 5
-          color: isActive ? Theme.tertiary : (hasWindows ? Theme.surfaceContainer : Theme.surface)
+          Text {
+            anchors.centerIn: parent
+            text: ws ? ws.id : ""
+            color: isActive ? Theme.onPrimary : Theme.text
+            font {
+              family: "Inter"
+              pixelSize: 11
+              weight: isActive ? Font.Bold : Font.Medium
+            }
+          }
         }
+      }
+    }
 
-        Text {
-          anchors.centerIn: parent
-          text: ws ? ws.id : ""
-          color: isActive ? Theme.onPrimary : Theme.text
-          font {
-            family: "Inter"
-            pixelSize: 12
-            weight: isActive ? Font.Bold : Font.Medium
+    Row {
+      spacing: pillSpacing
+      visible: root.secondRowCount > 0
+      Repeater {
+        model: root.secondRowCount
+        delegate: Item {
+          readonly property int realIndex: root.firstRowCount + index
+          readonly property var ws: root._items.length > realIndex ? root._items[realIndex] : null
+          readonly property bool isActive: realIndex === root._focused
+          readonly property bool hasWindows: ws ? root.windowCount(ws) > 0 : false
+
+          width: pillSize
+          height: pillSize
+
+          Rectangle {
+            anchors.fill: parent
+            radius: 6
+            color: isActive ? Theme.tertiary : (hasWindows ? Theme.surfaceContainer : Theme.surface)
+          }
+
+          Text {
+            anchors.centerIn: parent
+            text: ws ? ws.id : ""
+            color: isActive ? Theme.onPrimary : Theme.text
+            font {
+              family: "Inter"
+              pixelSize: 11
+              weight: isActive ? Font.Bold : Font.Medium
+            }
           }
         }
       }
