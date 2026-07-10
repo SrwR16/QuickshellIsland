@@ -81,18 +81,18 @@ A temperature watchdog polls CPU temp every 8 seconds and force-reverts to Balan
 - Full-screen workspace overview (like macOS Mission Control) — `Super+Tab`
 - Per-monitor layout with workspace thumbnails
 - Glassmorphism effects, configurable grid
-- Toggle via `echo o > /tmp/qs-overview`
+- Toggle via `echo o > ~/.config/quickshell/qs-overview`
 
 ### Movie & TV Finder
 
-- Full-screen movie/TV search and streaming source finder — `echo v > /tmp/qs-movie`
+- Full-screen movie/TV search and streaming source finder — `echo v > ~/.config/quickshell/qs-movie`
 - Browse trending movies and TV shows, search by title
 - Automatic source checking across multiple streaming providers
 - Opens as an in-process overlay (no separate process)
 
 ### Wallpaper Picker
 
-- In-process wallpaper picker overlay — `echo w > /tmp/qs-wallpaper`
+- In-process wallpaper picker overlay — `echo w > ~/.config/quickshell/qs-wallpaper`
 - Scans `~/Pictures/Wallpapers/` for images
 - Applies via `awww` (fallback: `feh`)
 - Generates Material You color palette with `matugen` (live-updates the Theme singleton)
@@ -114,7 +114,7 @@ shell.qml (entrypoint)
 │       ├── NotificationBanner
 │       └── PasswordAskpassDialog + AskpassService
 ├── PanelWindow (overlay, app launcher popup)
-├── IPC Process (polls /tmp/qs-* trigger files)
+├── IPC Process (polls ~/.config/quickshell/qs-* trigger files)
 ├── WallpaperService
 ├── AppLauncherService
 ├── ModeService (power/fan/GPU profiles + temp watchdog)
@@ -315,31 +315,31 @@ export SSH_ASKPASS_REQUIRE=force
 
 ### 6. (Optional) Keyboard shortcuts
 
-The config watches these trigger files (polled every 50ms):
+The config watches for trigger files in `~/.config/quickshell/`:
 
-| File / Command | Action |
-|---|---|---|
-| `/tmp/qs-power-menu` (write `p`) | Toggle power menu |
-| `/tmp/qs-app-launcher` (write `a`) | Toggle app launcher |
-| `/tmp/qs-mode-cycle` (write `m`) | Cycle silent → balanced → performance |
-| `/tmp/qs-toggle-cc` (write `c`) | Toggle control center |
-| `/tmp/qs-overview` (write `o`) | Toggle workspace overview |
-| `/tmp/qs-wallpaper` (write `w`) | Toggle wallpaper picker |
-| `/tmp/qs-movie` (write `v`) | Toggle movie/TV finder |
+| File | Action |
+|---|---|
+| `qs-power-menu` (write `p`) | Toggle power menu |
+| `qs-app-launcher` (write `a`) | Toggle app launcher |
+| `qs-mode-cycle` (write `m`) | Cycle silent → balanced → performance |
+| `qs-toggle-cc` (write `c`) | Toggle control center |
+| `qs-overview` (write `o`) | Toggle workspace overview |
+| `qs-wallpaper` (write `w`) | Toggle wallpaper picker |
+| `qs-movie` (write `v`) | Toggle movie/TV finder |
 
 Hyprland keybinds:
 
 ```conf
-bind = $mod, Q, exec, echo p > /tmp/qs-power-menu
-bind = $mod, Space, exec, echo a > /tmp/qs-app-launcher
-bind = $mod, M, exec, echo m > /tmp/qs-mode-cycle
-bind = $mod, C, exec, echo c > /tmp/qs-toggle-cc
-bind = $mod, Tab, exec, echo o > /tmp/qs-overview
-bind = $mod, W, exec, echo w > /tmp/qs-wallpaper
-bind = $mod, P, exec, echo v > /tmp/qs-movie
+bind = $mod, Q, exec, echo p > ~/.config/quickshell/qs-power-menu
+bind = $mod, Space, exec, echo a > ~/.config/quickshell/qs-app-launcher
+bind = $mod, M, exec, echo m > ~/.config/quickshell/qs-mode-cycle
+bind = $mod, C, exec, echo c > ~/.config/quickshell/qs-toggle-cc
+bind = $mod, Tab, exec, echo o > ~/.config/quickshell/qs-overview
+bind = $mod, W, exec, echo w > ~/.config/quickshell/qs-wallpaper
+bind = $mod, P, exec, echo v > ~/.config/quickshell/qs-movie
 ```
 
-Built-in: `Alt+Q` (power menu), `Alt+F5` (mode cycle), and `Super+Tab` (overview via `/tmp/qs-overview`) using Qt `ApplicationShortcut`.
+Built-in: `Alt+Q` (power menu), `Alt+F5` (mode cycle), and `Super+Tab` (overview via `qs-overview`) using Qt `ApplicationShortcut`.
 
 ### 7. (Optional) Wallpaper directory
 

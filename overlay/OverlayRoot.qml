@@ -191,19 +191,20 @@ Item {
         command: ["stdbuf", "-oL", "sh", "-c",
             "while true; do " +
             "  out=''; " +
-            "  test -f /tmp/qs-power-menu && rm /tmp/qs-power-menu && out=\"${out}p\"; " +
-            "  test -f /tmp/qs-app-launcher && rm /tmp/qs-app-launcher && out=\"${out}a\"; " +
-            "  test -f /tmp/qs-mode-cycle && rm /tmp/qs-mode-cycle && out=\"${out}m\"; " +
-            "  test -f /tmp/qs-toggle-cc && rm /tmp/qs-toggle-cc && out=\"${out}c\"; " +
-            "  test -f /tmp/qs-productivity && rm /tmp/qs-productivity && out=\"${out}d\"; " +
-            "  test -f /tmp/qs-pomodoro && rm /tmp/qs-pomodoro && out=\"${out}f\"; " +
-            "  test -f /tmp/qs-sys && rm /tmp/qs-sys && out=\"${out}s\"; " +
-            "  test -f /tmp/qs-tray && rm /tmp/qs-tray && out=\"${out}t\"; " +
-            "  test -f /tmp/qs-overview && rm /tmp/qs-overview && out=\"${out}o\"; " +
-            "  test -f /tmp/qs-wallpaper && rm /tmp/qs-wallpaper && out=\"${out}w\"; " +
-            "  test -f /tmp/qs-movie && rm /tmp/qs-movie && out=\"${out}v\"; " +
+            "  IPC_DIR=\"$HOME/.config/quickshell\"; " +
+            "  test -f \"$IPC_DIR/qs-power-menu\" && rm \"$IPC_DIR/qs-power-menu\" && out=\"${out}p\"; " +
+            "  test -f \"$IPC_DIR/qs-app-launcher\" && rm \"$IPC_DIR/qs-app-launcher\" && out=\"${out}a\"; " +
+            "  test -f \"$IPC_DIR/qs-mode-cycle\" && rm \"$IPC_DIR/qs-mode-cycle\" && out=\"${out}m\"; " +
+            "  test -f \"$IPC_DIR/qs-toggle-cc\" && rm \"$IPC_DIR/qs-toggle-cc\" && out=\"${out}c\"; " +
+            "  test -f \"$IPC_DIR/qs-productivity\" && rm \"$IPC_DIR/qs-productivity\" && out=\"${out}d\"; " +
+            "  test -f \"$IPC_DIR/qs-pomodoro\" && rm \"$IPC_DIR/qs-pomodoro\" && out=\"${out}f\"; " +
+            "  test -f \"$IPC_DIR/qs-sys\" && rm \"$IPC_DIR/qs-sys\" && out=\"${out}s\"; " +
+            "  test -f \"$IPC_DIR/qs-tray\" && rm \"$IPC_DIR/qs-tray\" && out=\"${out}t\"; " +
+            "  test -f \"$IPC_DIR/qs-overview\" && rm \"$IPC_DIR/qs-overview\" && out=\"${out}o\"; " +
+            "  test -f \"$IPC_DIR/qs-wallpaper\" && rm \"$IPC_DIR/qs-wallpaper\" && out=\"${out}w\"; " +
+            "  test -f \"$IPC_DIR/qs-movie\" && rm \"$IPC_DIR/qs-movie\" && out=\"${out}v\"; " +
             "  if [ -n \"$out\" ]; then echo \"$out\"; fi; " +
-            "  inotifywait -qq -t 2 -e create,modify /tmp 2>/dev/null || sleep 0.2; " +
+            "  inotifywait -qq -t 2 -e create,modify \"$IPC_DIR\" 2>/dev/null || sleep 0.2; " +
             "done"
         ]
         stdout: SplitParser {
