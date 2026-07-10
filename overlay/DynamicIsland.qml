@@ -54,7 +54,7 @@ Rectangle {
   property bool isPinned: false
   property bool hasMedia: media.mediaState !== "Idle"
   property bool _powerHovered: false
-  property bool isExpanded: mouseArea.containsMouse || statusCapsule.isHovered || (typeof mediaSectionItem !== "undefined" && mediaSectionItem.isHovered) || _powerHovered || (typeof timeMouseArea !== "undefined" && timeMouseArea.containsMouse) || (typeof dateMouseArea !== "undefined" && dateMouseArea.containsMouse) || isPinned || showControlCenter || showProductivity
+  property bool isExpanded: mouseArea.containsMouse || statusCapsule.isHovered || (typeof mediaSectionItem !== "undefined" && mediaSectionItem.isHovered) || _powerHovered || (typeof timeMouseArea !== "undefined" && timeMouseArea.containsMouse) || (typeof dateMouseArea !== "undefined" && dateMouseArea.containsMouse) || isPinned || showControlCenter || showProductivity || showPowerSection
   signal toggleControlCenter()
 
   // --- Morph mode ---
@@ -320,7 +320,8 @@ Rectangle {
                             : showMovies ? "movies" 
                              : showVpn ? "vpn" 
                              : showTray ? "tray" 
-                             : showSys ? "sys" 
+                              : showSys ? "sys" 
+                               : showPowerSection ? "powerSection" 
                               : showPomodoro ? "pomodoro" 
                              : activityManager && activityManager.activeActivity ? _queueState(activityManager.activeActivity.type)
                             : "default"
@@ -369,6 +370,10 @@ Rectangle {
     State {
       name: "notification"
       PropertyChanges { target: clockWidget; height: Math.max(130, notifBanner.bannerHeight); width: 480; radius: 28 }
+    },
+    State {
+      name: "powerSection"
+      PropertyChanges { target: clockWidget; height: 160; width: 540; radius: 28 }
     },
     State {
       name: "tray"
@@ -1113,6 +1118,39 @@ Rectangle {
           onDismissNotif: (notifRef) => { if (clockWidget.notifService) clockWidget.notifService.dismissNotif(notifRef); }
           onClearNotifs: { if (clockWidget.notifService) clockWidget.notifService.clearAll(); }
           onCloseRequested: clockWidget.showControlCenter = false
+        }
+      }
+    }
+  }
+
+  // --- Power Panel overlay ---
+  Item {
+    id: powerExpandedContent
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.margins: 20
+    anchors.topMargin: 64
+    height: Math.max(0, parent.height - 84)
+    clip: true
+
+    opacity: clockWidget.showPowerSection ? 1.0 : 0.0
+    visible: opacity > 0.0
+    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
+
+    MouseArea {
+      anchors.fill: parent
+      onClicked: {}
+    }
+
+    Loader {
+      id: powerLoader
+      anchors.fill: parent
+      active: clockWidget.showPowerSection || opacity > 0.0
+      sourceComponent: Component {
+        PowerPanel {
+          isOpen: clockWidget.showPowerSection
+          onCloseRequested: clockWidget.showPowerSection = false
         }
       }
     }

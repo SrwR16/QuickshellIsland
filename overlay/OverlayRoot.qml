@@ -85,16 +85,6 @@ Item {
         hwMonitor: hwMonitor
     }
 
-    // --- Power Panel (integrated overlay at same position as island) ---
-    PowerPanel {
-      z: 15
-      showPanel: island.showPowerSection
-      onCloseRequested: island.showPowerSection = false
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.top: parent.top
-      anchors.topMargin: 10
-    }
-
     // Embed Search (formerly AppLauncher) directly in the same scene graph
     Item {
         z: 20
