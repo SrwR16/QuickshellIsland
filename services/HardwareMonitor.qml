@@ -31,7 +31,7 @@ QtObject {
             "    echo \"b=$b_pct\"; echo \"c=$c\"; echo \"n=$n\"; echo \"k=$k_pct\"; " +
             "    last_b=\"$b\"; last_c=\"$c\"; last_n=\"$n\"; last_k=\"$k\"; " +
             "  fi; " +
-            "  sleep 0.05; " +
+            "  sleep 0.3; " +
             "done"
         ]
         running: true

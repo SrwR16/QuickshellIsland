@@ -2,7 +2,6 @@ import "./overlay"
 import "./widgets"
 import "./services"
 import "./theme"
-import "./theme"
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -19,27 +18,33 @@ ShellRoot {
         onLoaded: applyColors()
         onTextChanged: applyColors()
 
+        Component.onCompleted: {
+            if (text().trim().length >= 10) applyColors();
+        }
+
         function applyColors() {
             var t = text().trim()
             if (t.length < 10) return
             try {
                 var c = JSON.parse(t)
-                if (c.background) Theme.background = c.background
-                if (c.surface) Theme.surface = c.surface
-                if (c.surfaceBright) Theme.surfaceBright = c.surfaceBright
-                if (c.surfaceDim) Theme.surfaceDim = c.surfaceDim
-                if (c.surfaceContainer) Theme.surfaceContainer = c.surfaceContainer
-                if (c.surfaceVariant) Theme.surfaceVariant = c.surfaceVariant
-                if (c.primary) Theme.primary = c.primary
-                if (c.primaryFg) Theme.primaryFg = c.primaryFg
-                if (c.secondary) Theme.secondary = c.secondary
-                if (c.tertiary) Theme.tertiary = c.tertiary
-                if (c.backgroundFg) Theme.backgroundFg = c.backgroundFg
-                if (c.surfaceFg) Theme.surfaceFg = c.surfaceFg
-                if (c.surfaceVariantFg) Theme.surfaceVariantFg = c.surfaceVariantFg
-                if (c.outline) Theme.outline = c.outline
-                if (c.outlineVariant) Theme.outlineVariant = c.outlineVariant
-                if (c.error) Theme.error = c.error
+                var batch = {}
+                if (c.background) batch.background = c.background
+                if (c.surface) batch.surface = c.surface
+                if (c.surfaceBright) batch.surfaceBright = c.surfaceBright
+                if (c.surfaceDim) batch.surfaceDim = c.surfaceDim
+                if (c.surfaceContainer) batch.surfaceContainer = c.surfaceContainer
+                if (c.surfaceVariant) batch.surfaceVariant = c.surfaceVariant
+                if (c.primary) batch.primary = c.primary
+                if (c.primaryFg) batch.primaryFg = c.primaryFg
+                if (c.secondary) batch.secondary = c.secondary
+                if (c.tertiary) batch.tertiary = c.tertiary
+                if (c.backgroundFg) batch.backgroundFg = c.backgroundFg
+                if (c.surfaceFg) batch.surfaceFg = c.surfaceFg
+                if (c.surfaceVariantFg) batch.surfaceVariantFg = c.surfaceVariantFg
+                if (c.outline) batch.outline = c.outline
+                if (c.outlineVariant) batch.outlineVariant = c.outlineVariant
+                if (c.error) batch.error = c.error
+                for (var k in batch) Theme[k] = batch[k]
             } catch (e) {
                 console.error("theme colors parse error:", e)
             }
@@ -98,9 +103,4 @@ ShellRoot {
         }
     }
 
-    Shortcut {
-        sequences: ["Alt+F5"]
-        onActivated: { /* Should forward to modeSvc if needed, or maybe handled elsewhere */ }
-        context: Qt.ApplicationShortcut
-    }
 }

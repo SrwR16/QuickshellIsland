@@ -98,9 +98,9 @@ Item {
         } catch (e) {}
     }
 
-    // Sync audio nodes on a timer (Pipewire doesn't expose a node change signal)
+    // Sync audio nodes only when ControlCenter is open
     Timer {
-        interval: 2000; repeat: true; running: true
+        interval: 2000; repeat: true; running: controlCenter.isOpen
         onTriggered: _syncAudioNodes()
     }
 
@@ -605,11 +605,6 @@ Item {
         _syncAudioNodes();
         backlightDetectProc.running = true;
         nlStateFile.reload();
-    }
-
-    property Timer pctlMetaTimer: Timer {
-        interval: 3000; running: true; repeat: true
-        onTriggered: playerctlData.fetch()
     }
 
     // ---- Inline components ----

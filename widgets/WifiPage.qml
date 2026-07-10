@@ -170,7 +170,7 @@ ScrollView {
           spacing: 10
 
           Text {
-            text: modelData.signal > 66 ? "" : modelData.signal > 33 ? "" : ""
+            text: modelData.signal > 66 ? "󰤨" : modelData.signal > 33 ? "󰤢" : "󰤟"
             color: Theme.text
             font { family: "JetBrainsMono Nerd Font"; pixelSize: 15 }
           }

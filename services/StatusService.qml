@@ -15,8 +15,9 @@ QtObject {
   property string connType: "disconnected"
 
   readonly property string powerState: {
-    if (powerStatus === "Charging") return "Charging";
-    if (powerStatus === "Full") return "Full";
+    var ps = powerStatus.toLowerCase();
+    if (ps === "charging") return "Charging";
+    if (ps === "full" || ps === "fully-charged") return "Full";
     return "Discharging";
   }
 
@@ -45,7 +46,8 @@ QtObject {
               battery = parsedVal;
             }
             powerStatus = parts[1];
-            charging = (powerStatus === "Charging" || powerStatus === "Full");
+            var st = powerStatus.toLowerCase();
+            charging = (st === "charging" || st === "full" || st === "fully-charged");
           }
         }
       }

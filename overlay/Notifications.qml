@@ -9,8 +9,8 @@ import Quickshell.Services.Notifications
 Rectangle {
   id: root
 
-  property var notification: null
   property var notificationData: null
+  property int pendingCount: 0
   readonly property bool expanded: notificationData !== null
   property bool bannerHovered: false
 
@@ -28,7 +28,6 @@ Rectangle {
 
   color: Theme.background
   clip: true
-
   layer.enabled: true
   layer.samples: 4
 
@@ -41,6 +40,9 @@ Rectangle {
     radius: 2
     color: Theme.error
   }
+
+  opacity: expanded ? 1.0 : 0.0
+  Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
 
   RowLayout {
     id: content
@@ -92,17 +94,7 @@ Rectangle {
 
       Text {
         text: root.notificationData?.body ?? ""
-        visible: text !== "" && !root.expanded
-        color: Theme.subtext
-        font { family: "Inter"; pixelSize: 10; weight: 400 }
-        elide: Text.ElideRight
-        Layout.fillWidth: true
-        maximumLineCount: 1
-      }
-
-      Text {
-        text: root.notificationData?.body ?? ""
-        visible: text !== "" && root.expanded
+        visible: expanded && text !== ""
         color: Theme.muted
         font { family: "Inter"; pixelSize: 10; weight: 400 }
         elide: Text.ElideRight
@@ -112,7 +104,7 @@ Rectangle {
       }
 
       Flow {
-        visible: root.expanded && root.notificationData?.actions?.length > 0
+        visible: expanded && root.notificationData?.actions?.length > 0
         Layout.topMargin: 4
         spacing: 6
 
@@ -168,9 +160,11 @@ Rectangle {
     target: null
     xAxis { minimum: -bannerWidth; maximum: bannerWidth }
     onActiveChanged: {
-      if (!active && Math.abs(root.dragOffset) > 80)
-        root.dismissed(root.notificationData);
-      if (!active) root.dragOffset = 0;
+      if (!active) {
+        if (Math.abs(root.dragOffset) > 80)
+          root.dismissed(root.notificationData);
+        root.dragOffset = 0;
+      }
     }
     onTranslationChanged: (delta) => {
       root.dragOffset = delta.x;
@@ -180,8 +174,6 @@ Rectangle {
   transform: Translate {
     x: root.dragOffset
   }
-
-  Behavior on dragOffset { NumberAnimation { duration: 150; easing.type: Easing.OutQuart } }
 
   MouseArea {
     anchors.fill: parent
@@ -202,64 +194,4 @@ Rectangle {
     if (diff < 86400000) return Math.floor(diff / 3600000) + "h";
     return Math.floor(diff / 86400000) + "d";
   }
-
-  states: [
-    State {
-      name: "expanded"
-      when: expanded
-      PropertyChanges { target: root; width: bannerWidth }
-      PropertyChanges { target: root; height: bannerHeight }
-      PropertyChanges { target: root; radius: bannerRadius }
-      PropertyChanges { target: content; opacity: 1.0 }
-    },
-    State {
-      name: "collapsed"
-      when: !expanded
-      PropertyChanges { target: root; width: 0 }
-      PropertyChanges { target: root; height: 0 }
-      PropertyChanges { target: root; radius: 18 }
-      PropertyChanges { target: content; opacity: 0.0 }
-    }
-  ]
-
-  transitions: [
-    Transition {
-      from: "collapsed"; to: "expanded"
-      ParallelAnimation {
-        NumberAnimation {
-          target: root
-          properties: "width,height,radius"
-          duration: 400
-          easing.type: Easing.InOutQuint
-        }
-        SequentialAnimation {
-          PauseAnimation { duration: 150 }
-          NumberAnimation {
-            target: content
-            property: "opacity"
-            duration: 200
-            easing.type: Easing.InOutQuint
-          }
-        }
-      }
-    },
-    Transition {
-      from: "expanded"; to: "collapsed"
-      ParallelAnimation {
-        SequentialAnimation {
-          NumberAnimation {
-            target: content
-            property: "opacity"
-            duration: 100
-          }
-        }
-        NumberAnimation {
-          target: root
-          properties: "width,height,radius"
-          duration: 300
-          easing.type: Easing.InOutQuint
-        }
-      }
-    }
-  ]
 }

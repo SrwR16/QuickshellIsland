@@ -16,25 +16,25 @@ Rectangle {
 
   RowLayout {
     anchors.centerIn: parent
-    spacing: 20
+    spacing: 24
 
     ColumnLayout {
-      spacing: 6
+      spacing: 8
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
-        width: 50; height: 50; radius: 14
-        color: btnMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
+        width: 56; height: 56; radius: 16
+        color: logMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: btnMouse.containsMouse ? Theme.text : Theme.error
-          font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
+          color: logMouse.containsMouse ? Theme.text : Theme.error
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 24 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
         MouseArea {
-          id: btnMouse
+          id: logMouse
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
@@ -43,26 +43,26 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["sh", "-c", "loginctl terminate-user $USER"])
         }
       }
-      Text { text: "Logout"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Logout"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 11; Layout.alignment: Qt.AlignHCenter }
     }
 
     ColumnLayout {
-      spacing: 6
+      spacing: 8
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
-        width: 50; height: 50; radius: 14
-        color: lockBtnMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
+        width: 56; height: 56; radius: 16
+        color: lockMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: lockBtnMouse.containsMouse ? Theme.text : Theme.secondary
-          font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
+          color: lockMouse.containsMouse ? Theme.text : Theme.secondary
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 24 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
         MouseArea {
-          id: lockBtnMouse
+          id: lockMouse
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
@@ -71,26 +71,26 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["hyprlock"])
         }
       }
-      Text { text: "Lock"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Lock"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 11; Layout.alignment: Qt.AlignHCenter }
     }
 
     ColumnLayout {
-      spacing: 6
+      spacing: 8
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
-        width: 50; height: 50; radius: 14
-        color: sleepBtnMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
+        width: 56; height: 56; radius: 16
+        color: sleepMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: sleepBtnMouse.containsMouse ? Theme.text : Theme.tertiary
-          font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
+          color: sleepMouse.containsMouse ? Theme.text : Theme.tertiary
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 24 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
         MouseArea {
-          id: sleepBtnMouse
+          id: sleepMouse
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
@@ -99,26 +99,26 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["systemctl", "suspend"])
         }
       }
-      Text { text: "Sleep"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Sleep"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 11; Layout.alignment: Qt.AlignHCenter }
     }
 
     ColumnLayout {
-      spacing: 6
+      spacing: 8
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
-        width: 50; height: 50; radius: 14
-        color: btnMouse2.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
+        width: 56; height: 56; radius: 16
+        color: rebMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: btnMouse2.containsMouse ? Theme.text : Theme.warning
-          font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
+          color: rebMouse.containsMouse ? Theme.text : Theme.warning
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 24 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
         MouseArea {
-          id: btnMouse2
+          id: rebMouse
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
@@ -127,26 +127,26 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["systemctl", "reboot"])
         }
       }
-      Text { text: "Reboot"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Reboot"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 11; Layout.alignment: Qt.AlignHCenter }
     }
 
     ColumnLayout {
-      spacing: 6
+      spacing: 8
       Layout.alignment: Qt.AlignHCenter
       Rectangle {
         Layout.alignment: Qt.AlignHCenter
-        width: 50; height: 50; radius: 14
-        color: btnMouse3.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
+        width: 56; height: 56; radius: 16
+        color: shutMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceLight
         Behavior on color { ColorAnimation { duration: 120 } }
         Text {
           anchors.centerIn: parent
           text: ""
-          color: btnMouse3.containsMouse ? Theme.text : Theme.error
-          font { family: "JetBrainsMono Nerd Font"; pixelSize: 22 }
+          color: shutMouse.containsMouse ? Theme.text : Theme.error
+          font { family: "JetBrainsMono Nerd Font"; pixelSize: 24 }
           Behavior on color { ColorAnimation { duration: 120 } }
         }
         MouseArea {
-          id: btnMouse3
+          id: shutMouse
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
@@ -155,7 +155,7 @@ Rectangle {
           onClicked: if (powerMenu.powerAction) powerMenu.powerAction(["systemctl", "poweroff"])
         }
       }
-      Text { text: "Shutdown"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
+      Text { text: "Shutdown"; color: Theme.text; opacity: 0.6; font.family: "Inter"; font.pixelSize: 11; Layout.alignment: Qt.AlignHCenter }
     }
   }
 }

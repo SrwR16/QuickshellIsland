@@ -14,33 +14,40 @@ Rectangle {
 
   property QtObject privacySvc
   property QtObject vpnSvc
+  property QtObject activityManager: null
+  property QtObject notifService: null
+  property QtObject statusSvc: null
 
   function exclusiveOpen(menuName) {
     if (menuName !== "cc") showControlCenter = false;
-    if (menuName !== "power") showPowerMenu = false;
     if (menuName !== "app") showAppLauncher = false;
     if (menuName !== "wallpaper") showWallpaperMenu = false;
     if (menuName !== "movies") showMovies = false;
     if (menuName !== "sys") showSys = false;
     if (menuName !== "tray") showTray = false;
-    if (menuName !== "battery") showBatteryAlert = false;
-    if (menuName !== "battery") showBatteryAlert = false;
     if (menuName !== "askpass") showAskpass = false;
     if (menuName !== "prod") showProductivity = false;
     if (menuName !== "vpn") showVpn = false;
+    if (activityManager) activityManager.dismissAll();
   }
 
   property bool showControlCenter: false
   property bool showVpn: false
+  property bool _prevShowControlCenter: false
   onShowControlCenterChanged: {
-    if (showControlCenter) exclusiveOpen("cc");
-    else isPinned = false; // Force unpin when closing so it fully shrinks down to 36px
+    if (showControlCenter) {
+      exclusiveOpen("cc");
+    } else {
+      if (_prevShowControlCenter && activityManager) activityManager.resumeAutoDismiss();
+      isPinned = false;
+    }
+    _prevShowControlCenter = showControlCenter;
   }
 
   property bool isPinned: false
   property bool hasMedia: media.mediaState !== "Idle"
-  // Added powerMouseArea.containsMouse so the island doesn't collapse when hovering the power button
-  property bool isExpanded: mouseArea.containsMouse || statusCapsule.isHovered || (typeof mediaSectionItem !== "undefined" && mediaSectionItem.isHovered) || (typeof powerMouseArea !== "undefined" && powerMouseArea.containsMouse) || (typeof timeMouseArea !== "undefined" && timeMouseArea.containsMouse) || (typeof dateMouseArea !== "undefined" && dateMouseArea.containsMouse) || isPinned || showControlCenter || showProductivity
+  property bool _powerHovered: false
+  property bool isExpanded: mouseArea.containsMouse || statusCapsule.isHovered || (typeof mediaSectionItem !== "undefined" && mediaSectionItem.isHovered) || _powerHovered || (typeof timeMouseArea !== "undefined" && timeMouseArea.containsMouse) || (typeof dateMouseArea !== "undefined" && dateMouseArea.containsMouse) || isPinned || showControlCenter || showProductivity
   signal toggleControlCenter()
 
   // --- Morph mode ---
@@ -51,8 +58,10 @@ Rectangle {
     interval: 1000; running: true; repeat: false
     onTriggered: {
       _ready = true;
-      if (latestNotificationData && notifUnpinTimer)
-        notifUnpinTimer.restart();
+      if (statusSvc) {
+        if (statusSvc.charging) pushBatteryAlert("charging");
+        else if (!statusSvc.charging && statusSvc.battery <= 20) pushBatteryAlert("low");
+      }
     }
   }
 
@@ -128,21 +137,25 @@ Rectangle {
     }
   }
 
-  // --- Power menu state ---
-  property bool showPowerMenu: false
-  signal showPowerMenuRequested()
+  // --- Power menu (via ActivityManager queue) ---
+  property bool showPowerMenu: activityManager && activityManager.activeActivity && activityManager.activeActivity.type === "power"
   property bool powerMenuHovered: powerMenuComponent ? powerMenuComponent.hovered : false
-  property Timer powerMenuTimer: Timer {
-    interval: 10000
-    onTriggered: clockWidget.showPowerMenu = false
-  }
 
   property Process powerActionProc: Process { running: false }
+
+  function openPowerMenu() {
+    if (activityManager) {
+      exclusiveOpen("power");
+      activityManager.dismissByType("notification");
+      activityManager.dismissByType("battery");
+      activityManager.push("power", {}, activityManager.priorityInteractive, 10000, true);
+    }
+  }
 
   function powerAction(cmd) {
     powerActionProc.command = cmd;
     powerActionProc.running = true;
-    clockWidget.showPowerMenu = false;
+    if (activityManager) activityManager.dismissByType("power");
   }
 
   // --- Mode indicator ---
@@ -171,41 +184,30 @@ Rectangle {
     onTriggered: clockWidget.showWallpaperMenu = false
   }
 
-  // --- System Status for Alerts ---
-  StatusService { id: sysStatus }
-
-  // --- Battery Alert state ---
-  property bool showBatteryAlert: false
+  // --- Battery Alert (via ActivityManager queue) ---
   property bool showProductivity: false
   property string productivityPage: "time"
-  // Add showVpn to anyOverlayActive
+
+  property bool showBatteryAlert: activityManager && activityManager.activeActivity && activityManager.activeActivity.type === "battery"
+  property string batteryAlertMode: showBatteryAlert ? activityManager.activeActivity.data.mode : "charging"
   property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerMenu || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
-  property string batteryAlertMode: "charging" // "charging", "unplugged", "low"
-  property Timer batteryAlertTimer: Timer {
-    interval: 2000 // Reduced from 3000ms so it doesn't stay visible for too long
-    onTriggered: clockWidget.showBatteryAlert = false
+
+  function pushBatteryAlert(mode) {
+    if (activityManager && _ready) {
+      if (!activityManager.activeActivity || activityManager.activeActivity.priority >= activityManager.priorityTimeSensitive) {
+        activityManager.dismissByType("battery");
+        activityManager.push("battery", { mode: mode }, activityManager.priorityPassive, 2000);
+      }
+    }
   }
 
   Connections {
-    target: sysStatus
+    target: statusSvc
     function onChargingChanged() {
-      if (clockWidget._ready) {
-        clockWidget.batteryAlertMode = sysStatus.charging ? "charging" : "unplugged"
-        clockWidget.showBatteryAlert = true
-      }
+      if (statusSvc) pushBatteryAlert(statusSvc.charging ? "charging" : "unplugged");
     }
     function onBatteryChanged() {
-      if (clockWidget._ready && !sysStatus.charging && sysStatus.battery <= 20) {
-        clockWidget.batteryAlertMode = "low"
-        clockWidget.showBatteryAlert = true
-      }
-    }
-  }
-
-  onShowBatteryAlertChanged: {
-    if (showBatteryAlert) {
-      exclusiveOpen("battery");
-      batteryAlertTimer.restart();
+      if (statusSvc && !statusSvc.charging && statusSvc.battery <= 20) pushBatteryAlert("low");
     }
   }
 
@@ -239,38 +241,10 @@ Rectangle {
     }
   }
 
-  // --- Notification state ---
-  // Set from shell.qml via the latestNotification property binding.
-  // When non-null, the island auto-expands to show the Dynamic Island banner.
-  property var latestNotification: null
-  property var latestNotificationData: null
-  property var storedNotifications: []
-  signal notifDismissed(var notifRef)
-  signal notifBannerDismissed(var notifRef)
+  // --- Notification state (via ActivityManager queue) ---
+  readonly property bool showingNotification: activityManager && activityManager.activeActivity && activityManager.activeActivity.type === "notification"
 
-  // True while the notification banner is the active view
-  readonly property bool showingNotification: latestNotification !== null
-
-  // --- Power menu lifecycle ---
-  onShowPowerMenuRequested: {
-    showPowerMenu = true;
-    if (powerMenuTimer) powerMenuTimer.restart();
-  }
-
-  onShowPowerMenuChanged: {
-    if (showPowerMenu) {
-      exclusiveOpen("power");
-      if (powerMenuTimer) powerMenuTimer.restart();
-    }
-  }
-
-  onPowerMenuHoveredChanged: {
-    if (powerMenuHovered && powerMenuTimer.running) {
-      powerMenuTimer.stop();
-    } else if (!powerMenuHovered && showPowerMenu) {
-      powerMenuTimer.restart();
-    }
-  }
+  property var _currentNotifData: showingNotification ? activityManager.activeActivity.data : null
 
   // --- App launcher lifecycle ---
   onShowAppLauncherChanged: {
@@ -305,31 +279,14 @@ Rectangle {
     }
   }
 
-  // --- Notification lifecycle ---
-  onLatestNotificationDataChanged: {
-    if (_ready && latestNotificationData) {
-      if (showPowerMenu) showPowerMenu = false;
-      if (showAppLauncher) showAppLauncher = false;
-      if (showWallpaperMenu) showWallpaperMenu = false;
-      if (notifUnpinTimer) notifUnpinTimer.restart();
-    }
-  }
-
+  // --- Notification lifecycle (via ActivityManager) ---
   readonly property bool notifHovered: (mouseArea && mouseArea.containsMouse) || (statusCapsule && statusCapsule.isHovered) || (notifBanner && notifBanner.bannerHovered)
 
   onNotifHoveredChanged: {
-    if (notifHovered && notifUnpinTimer.running) {
-      notifUnpinTimer.stop();
-    } else if (!notifHovered && _ready && latestNotificationData) {
-      notifUnpinTimer.restart();
-    }
-  }
-
-  Timer {
-    id: notifUnpinTimer
-    interval: 3500
-    onTriggered: {
-      clockWidget.notifBannerDismissed(clockWidget.latestNotificationData);
+    if (notifHovered && activityManager) {
+      activityManager.pauseAutoDismiss();
+    } else if (!notifHovered && _ready && activityManager && showingNotification) {
+      activityManager.resumeAutoDismiss();
     }
   }
 
@@ -354,12 +311,18 @@ Rectangle {
                             : showAskpass ? "askpass" 
                             : showMovies ? "movies" 
                             : showVpn ? "vpn" 
-                            : (latestNotificationData || showPowerMenu) ? "notificationOrPower" 
                             : showTray ? "tray" 
                             : showSys ? "sys" 
                             : showPomodoro ? "pomodoro" 
-                            : showBatteryAlert ? "batteryAlert" 
+                            : activityManager && activityManager.activeActivity ? _queueState(activityManager.activeActivity.type)
                             : "default"
+
+  function _queueState(type) {
+    if (type === "notification") return "notification"
+    if (type === "power") return "power"
+    if (type === "battery") return "batteryAlert"
+    return "default"
+  }
 
   state: morphState
 
@@ -397,8 +360,12 @@ Rectangle {
       PropertyChanges { target: clockWidget; height: 200; width: 480; radius: 28 }
     },
     State {
-      name: "notificationOrPower"
-      PropertyChanges { target: clockWidget; height: 130; width: 480; radius: 28 }
+      name: "notification"
+      PropertyChanges { target: clockWidget; height: Math.max(130, notifBanner.bannerHeight); width: 480; radius: 28 }
+    },
+    State {
+      name: "power"
+      PropertyChanges { target: clockWidget; height: 220; width: 480; radius: 28 }
     },
     State {
       name: "tray"
@@ -433,7 +400,7 @@ Rectangle {
     onClicked: (mouse) => {
       if (clockWidget.showingNotification) return;
       if (clockWidget.showPowerMenu) {
-        clockWidget.showPowerMenu = false;
+        if (clockWidget.activityManager) clockWidget.activityManager.dismissByType("power");
         return;
       }
       if (clockWidget.showWallpaperMenu) {
@@ -479,7 +446,7 @@ Rectangle {
 
     opacity: clockWidget.isExpanded || clockWidget.mode !== "default" || clockWidget.anyOverlayActive ? 0.0 : 1.0
     visible: opacity > 0.0
-    Behavior on opacity { NumberAnimation { duration: 200 } }
+    Behavior on opacity { enabled: !clockWidget.showPowerMenu; NumberAnimation { duration: 200 } }
 
     property real leftWidth: media.playing ? visualizerContainer.width + 12 : 0
     property real rightWidth: (PomodoroService.sessionState !== "Idle" ? pomodoroRow.implicitWidth + 12 : 0) + (privacyContainer.targetWidth > 0 ? privacyContainer.targetWidth + 12 : 0)
@@ -610,7 +577,7 @@ Rectangle {
     anchors.centerIn: parent
     spacing: 8
 
-    opacity: !clockWidget.isExpanded && clockWidget.mode !== "default" ? 1.0 : 0.0
+    opacity: !clockWidget.isExpanded && clockWidget.mode !== "default" && !clockWidget.anyOverlayActive ? 1.0 : 0.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 200 } }
 
@@ -802,7 +769,7 @@ Rectangle {
     anchors.leftMargin: 16
     anchors.rightMargin: 16
 
-    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showingNotification && !clockWidget.showPomodoro && !clockWidget.showMovies && !clockWidget.showSys && !clockWidget.showBatteryAlert && !clockWidget.showTray ? 1.0 : 0.0
+    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showingNotification && !clockWidget.showPowerMenu && !clockWidget.showPomodoro && !clockWidget.showMovies && !clockWidget.showSys && !clockWidget.showBatteryAlert && !clockWidget.showTray ? 1.0 : 0.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
@@ -901,6 +868,7 @@ Rectangle {
       anchors.right: powerButton.left
       anchors.rightMargin: 12
       anchors.verticalCenter: parent.verticalCenter
+      statusSvc: clockWidget.statusSvc
       onClicked: clockWidget.showControlCenter = !clockWidget.showControlCenter
     }
 
@@ -925,7 +893,14 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: clockWidget.showPowerMenu = !clockWidget.showPowerMenu
+        onContainsMouseChanged: clockWidget._powerHovered = containsMouse
+        onClicked: {
+          if (clockWidget.showPowerMenu) {
+            if (clockWidget.activityManager) clockWidget.activityManager.dismissByType("power");
+          } else {
+            clockWidget.openPowerMenu();
+          }
+        }
       }
     }
   }
@@ -1016,7 +991,7 @@ Rectangle {
           anchors.margins: 3
           anchors.leftMargin: 3
           height: 14
-          width: Math.max(0, 36 * (sysStatus.battery / 100))
+          width: Math.max(0, 36 * ((clockWidget.statusSvc ? clockWidget.statusSvc.battery : 0) / 100))
           radius: 3
           color: clockWidget.batteryAlertMode === "charging" ? Theme.primary : (clockWidget.batteryAlertMode === "low" ? Theme.error : Theme.text)
         }
@@ -1048,7 +1023,7 @@ Rectangle {
         font.weight: 600
       }
       Text {
-        text: sysStatus.battery + "%"
+        text: (clockWidget.statusSvc ? clockWidget.statusSvc.battery : 0) + "%"
         color: clockWidget.batteryAlertMode === "charging" ? Theme.primary : (clockWidget.batteryAlertMode === "low" ? Theme.error : Theme.text)
         font.family: "Inter"
         font.pixelSize: 14
@@ -1152,8 +1127,12 @@ Rectangle {
   // --- Power menu overlay ---
   PowerMenu {
     id: powerMenuComponent
-    anchors.fill: parent
-    visible: clockWidget.showPowerMenu
+    anchors.centerIn: parent
+    width: clockWidget.state === "power" ? parent.width : 0
+    height: clockWidget.state === "power" ? parent.height : 0
+    opacity: clockWidget.showPowerMenu ? 1.0 : 0.0
+    visible: opacity > 0.0
+    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
     powerAction: clockWidget.powerAction
   }
 
@@ -1234,13 +1213,16 @@ Rectangle {
     id: notifBanner
     anchors.centerIn: parent
 
-    notification: clockWidget.latestNotification
-    notificationData: clockWidget.latestNotificationData
+    notificationData: clockWidget._currentNotifData
+    pendingCount: clockWidget.activityManager ? clockWidget.activityManager.pendingCount : 0
 
     onDismissed: (notifRef) => {
-      if (clockWidget.notifUnpinTimer)
-        clockWidget.notifUnpinTimer.stop();
-      clockWidget.notifDismissed(notifRef);
+      if (clockWidget.notifService && notifRef) {
+        clockWidget.notifService.dismissBanner(notifRef);
+      }
+      if (clockWidget.activityManager && clockWidget.activityManager.activeActivity) {
+        clockWidget.activityManager.dismiss(clockWidget.activityManager.activeActivity.id);
+      }
     }
   }
 

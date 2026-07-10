@@ -14,7 +14,22 @@ Item {
     property int islandHeight: island.height
     property alias island: island
 
-    NotificationService { id: notifService }
+    ActivityManager { id: activityManager }
+    StatusService { id: statusSvc }
+    NotificationService {
+      id: notifService
+      onNotificationReceived: function(data, notification) {
+        activityManager.push("notification", data, activityManager.priorityTimeSensitive, 3500)
+      }
+    }
+    Connections {
+      target: activityManager
+      function onActivityDismissed(activity) {
+        if (activity.type === "notification" && activity.data) {
+          notifService.dismissBanner(activity.data)
+        }
+      }
+    }
     WallpaperService { id: wallpaperSvc }
     AppLauncherService { id: appLauncherSvc }
     ModeService { id: modeSvc }
@@ -35,7 +50,8 @@ Item {
         }
         
         onClicked: {
-            island.showPowerMenu = false;
+            activityManager.dismissByType("power");
+            activityManager.dismissByType("battery");
             island.showWallpaperMenu = false;
             island.showControlCenter = false;
             island.showMovies = false;
@@ -56,11 +72,9 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: 10
 
-        latestNotification: notifService.latestNotification
-        latestNotificationData: notifService.latestNotificationData
-        storedNotifications: notifService.storedNotifications
-        onNotifDismissed: (notifRef) => notifService.dismissBanner(notifRef)
-        onNotifBannerDismissed: (notifRef) => notifService.dismissBanner(notifRef)
+        activityManager: activityManager
+        notifService: notifService
+        statusSvc: statusSvc
 
         wallpaperSvc: wallpaperSvc
         modeSvc: modeSvc
@@ -114,8 +128,8 @@ Item {
         stdout: SplitParser {
             onRead: (data) => {
                 var flags = data.trim()
-                if (flags.indexOf("p") >= 0 && !island.showAppLauncher) island.showPowerMenu = true
-                if (flags.indexOf("a") >= 0 && !island.showPowerMenu) island.showAppLauncher = true
+                if (flags.indexOf("p") >= 0 && !island.showAppLauncher) island.openPowerMenu()
+                if (flags.indexOf("a") >= 0 && !island.showPowerMenu && !activityManager.activeActivity) island.showAppLauncher = true
                 if (flags.indexOf("w") >= 0) island.showWallpaperMenu = !island.showWallpaperMenu
                 if (flags.indexOf("m") >= 0) {
                     modeSvc.cycleMode();

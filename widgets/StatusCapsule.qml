@@ -16,13 +16,14 @@ Rectangle {
 
     Behavior on color { ColorAnimation { duration: 150 } }
 
-    property string wifiName: status.wifi
-    property int wifiSignal: status.wifiSignal
-    property int batteryPercent: status.battery
-    property bool isCharging: status.charging
-    property string powerState: status.powerState
-    property string networkState: status.networkState
-    property string connectionType: status.connType
+    property QtObject statusSvc: null
+    property string wifiName: statusSvc ? statusSvc.wifi : "Disconnected"
+    property int wifiSignal: statusSvc ? statusSvc.wifiSignal : 0
+    property int batteryPercent: statusSvc ? statusSvc.battery : 0
+    property bool isCharging: statusSvc ? statusSvc.charging : false
+    property string powerState: statusSvc ? statusSvc.powerState : "Disconnected"
+    property string networkState: statusSvc ? statusSvc.networkState : "Disconnected"
+    property string connectionType: statusSvc ? statusSvc.connType : "disconnected"
     property bool isHovered: capsuleMouseArea.containsMouse
     signal clicked()
 
@@ -34,10 +35,6 @@ Rectangle {
             if (devs[i].state === BluetoothDeviceState.Connected) return true;
         }
         return false;
-    }
-
-    StatusService {
-        id: status
     }
 
     MouseArea {
@@ -95,7 +92,7 @@ Rectangle {
                 // Clamp max width to 21 to prevent overflow bugs if system reports > 100% battery
                 width: Math.max(0, Math.min(21, 21 * (statusCapsule.batteryPercent / 100)))
                 radius: 2
-                color: statusCapsule.isCharging ? Theme.primary : (statusCapsule.batteryPercent <= 20 ? Theme.error : Theme.text)
+                color: statusCapsule.isCharging ? "#34c759" : (statusCapsule.batteryPercent <= 20 ? Theme.error : Theme.text)
             }
 
             Rectangle {
@@ -108,29 +105,18 @@ Rectangle {
                 opacity: 0.4
             }
 
-            // Pure geometric '+' sign for charging: 100% immune to missing fonts or broken emojis
-            Item {
-                anchors.centerIn: parent
-                width: 8; height: 8
-                visible: statusCapsule.isCharging
-                z: 1
-                
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 2; height: 8
-                    color: Theme.background
-                }
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 8; height: 2
-                    color: Theme.background
-                }
-            }
+        }
+
+        Text {
+            visible: statusCapsule.isCharging
+            text: "󱐋"
+            color: "#34c759"
+            font { family: "JetBrainsMono Nerd Font"; pixelSize: 11 }
         }
 
         Text {
             text: statusCapsule.batteryPercent + "%"
-            color: statusCapsule.batteryPercent <= 20 && !statusCapsule.isCharging ? Theme.error : Theme.text
+            color: statusCapsule.isCharging ? "#34c759" : (statusCapsule.batteryPercent <= 20 ? Theme.error : Theme.text)
             font { family: "Inter"; pixelSize: 11; weight: 700 }
         }
     }

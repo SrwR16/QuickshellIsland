@@ -11,9 +11,12 @@ Item {
 
   property bool doNotDisturb: false
 
+  property var notificationQueue: []
   property var latestNotification: null
   property var latestNotificationData: null
   property var storedNotifications: []
+
+  signal notificationReceived(var data, var notification)
 
   NotificationServer {
     actionsSupported: true
@@ -47,6 +50,7 @@ Item {
       if (!notifService.doNotDisturb) {
         notifService.latestNotification = notification;
         notifService.latestNotificationData = data;
+        notifService.notificationReceived(data, notification);
       }
 
       var arr = notifService.storedNotifications.slice();

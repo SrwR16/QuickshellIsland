@@ -39,13 +39,6 @@ QtObject {
     }
   }
 
-  property Timer pollTimer: Timer {
-    interval: 5000
-    running: true
-    repeat: true
-    onTriggered: fetchMetadata()
-  }
-
   property Timer metaTimer: Timer {
     interval: 2000
     onTriggered: fetchMetadata()
