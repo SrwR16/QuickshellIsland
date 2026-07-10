@@ -2,6 +2,7 @@ import "../overlay"
 import "../widgets"
 import "../services"
 import "../theme"
+import "../Overview/services"
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -116,6 +117,7 @@ Item {
             "  test -f /tmp/qs-pomodoro && rm /tmp/qs-pomodoro && out=\"${out}f\"; " +
             "  test -f /tmp/qs-sys && rm /tmp/qs-sys && out=\"${out}s\"; " +
             "  test -f /tmp/qs-tray && rm /tmp/qs-tray && out=\"${out}t\"; " +
+            "  test -f /tmp/qs-overview && rm /tmp/qs-overview && out=\"${out}o\"; " +
             "  if [ -n \"$out\" ]; then echo \"$out\"; fi; " +
             "  inotifywait -qq -t 2 -e create,modify /tmp 2>/dev/null || sleep 0.2; " +
             "done"
@@ -134,6 +136,7 @@ Item {
                 if (flags.indexOf("f") >= 0) island.showPomodoro = !island.showPomodoro;
                 if (flags.indexOf("s") >= 0) island.showSys = !island.showSys;
                 if (flags.indexOf("t") >= 0) island.showTray = !island.showTray;
+                if (flags.indexOf("o") >= 0) GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
             }
         }
     }

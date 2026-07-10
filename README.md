@@ -26,7 +26,6 @@ The top bar morphs between several states with elastic animations:
 | **Notification** | 130px × 480px | App notification banner (3.5s auto-dismiss) |
 | **Power Menu** | 130px × 480px | Logout · Lock · Sleep · Reboot · Shutdown buttons (10s auto-dismiss) |
 | **App Launcher** | 240px × 480px | Search + filtered app grid (15s auto-dismiss) |
-| **Wallpaper Picker** | 300px × 640px | Thumbnail grid of wallpapers (20s auto-dismiss) |
 | **Askpass Dialog** | 200px × 480px | Sudo/SSH password prompt |
 
 ### Control Center
@@ -77,8 +76,24 @@ A temperature watchdog polls CPU temp every 8 seconds and force-reverts to Balan
 - Keyboard-navigable search with app icons
 - Launches via `gtk-launch`
 
+### Overview (Workspace Switcher)
+
+- Full-screen workspace overview (like macOS Mission Control) — `Super+Tab`
+- Per-monitor layout with workspace thumbnails
+- Glassmorphism effects, configurable grid
+- Toggle via `echo o > /tmp/qs-overview`
+
+### Movie & TV Finder
+
+- Full-screen movie/TV search and streaming source finder — `Super+P`
+- Browse trending movies and TV shows, search by title
+- Automatic source checking across multiple streaming providers
+- Opens in a standalone window (zero idle memory): `qs -p widgets/MoviePicker.qml`
+
 ### Wallpaper Picker
 
+- Standalone wallpaper picker — `Super+W`
+- Opens in a centered FloatingWindow, exits after picking (zero idle memory)
 - Scans `~/Pictures/Wallpapers/` for images
 - Applies via `awww` (fallback: `feh`)
 - Generates Material You color palette with `matugen` (live-updates the Theme singleton)
@@ -303,22 +318,26 @@ export SSH_ASKPASS_REQUIRE=force
 
 The config watches these trigger files (polled every 50ms):
 
-| File | Action |
-|---|---|
+| File / Command | Action |
+|---|---|---|
 | `/tmp/qs-power-menu` (write `p`) | Toggle power menu |
 | `/tmp/qs-app-launcher` (write `a`) | Toggle app launcher |
-| `/tmp/qs-wallpaper` (write `w`) | Toggle wallpaper picker |
 | `/tmp/qs-mode-cycle` (write `m`) | Cycle silent → balanced → performance |
 | `/tmp/qs-toggle-cc` (write `c`) | Toggle control center |
+| `/tmp/qs-overview` (write `o`) | Toggle workspace overview |
+| `qs -p movie.qml` | Open movie/TV finder (standalone) |
+| `qs -p widgets/WallpaperPicker.qml` | Open wallpaper picker (standalone) |
 
-You can bind these in your compositor (Hyprland example):
+Hyprland keybinds:
 
 ```conf
 bind = $mod, Q, exec, echo p > /tmp/qs-power-menu
 bind = $mod, Space, exec, echo a > /tmp/qs-app-launcher
-bind = $mod, W, exec, echo w > /tmp/qs-wallpaper
 bind = $mod, M, exec, echo m > /tmp/qs-mode-cycle
 bind = $mod, C, exec, echo c > /tmp/qs-toggle-cc
+bind = $mod, Tab, exec, echo o > /tmp/qs-overview
+bind = $mod, P, exec, qs -p ~/.config/quickshell/movie.qml
+bind = $mod, W, exec, qs -p ~/.config/quickshell/widgets/WallpaperPicker.qml
 ```
 
 Built-in: `Alt+Q` (power menu) and `Alt+F5` (mode cycle) using Qt `ApplicationShortcut`.

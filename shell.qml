@@ -2,6 +2,9 @@ import "./overlay"
 import "./widgets"
 import "./services"
 import "./theme"
+import "./Overview/common"
+import "./Overview/services"
+import "./Overview/modules/overview"
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -103,4 +106,8 @@ ShellRoot {
         }
     }
 
+    Overview {
+        id: overview
+        visible: true
+    }
 }
