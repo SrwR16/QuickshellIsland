@@ -10,8 +10,6 @@ ShellRoot {
 
   Component.onCompleted: GlobalStates.overviewOpen = true
 
-  Keys.onEscapePressed: Qt.quit()
-
   Connections {
     target: GlobalStates
     function onOverviewOpenChanged() {
