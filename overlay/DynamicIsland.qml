@@ -24,7 +24,7 @@ Rectangle {
     if (menuName !== "cc") showControlCenter = false;
     if (menuName !== "app") showAppLauncher = false;
     if (menuName !== "wallpaper") showWallpaperMenu = false;
-    if (menuName !== "movies") showMovies = false;
+
     if (menuName !== "sys") showSys = false;
     if (menuName !== "tray") showTray = false;
     if (menuName !== "askpass") showAskpass = false;
@@ -187,7 +187,7 @@ Rectangle {
 
   property bool showBatteryAlert: activityManager && activityManager.activeActivity && activityManager.activeActivity.type === "battery"
   property string batteryAlertMode: showBatteryAlert ? activityManager.activeActivity.data.mode : "charging"
-  property bool anyOverlayActive: showBatteryAlert || showPomodoro || showMovies || showSys || showTray || showPowerSection || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
+  property bool anyOverlayActive: showBatteryAlert || showPomodoro || showSys || showTray || showPowerSection || showAppLauncher || showWallpaperMenu || showAskpass || showProductivity || showVpn || showingNotification
 
   property string _pendingBatteryMode: ""
   property bool _suppressMorph: false
@@ -253,22 +253,14 @@ Rectangle {
     }
   }
 
-  // --- Pomodoro, Movies, System, Tray state ---
+  // --- Pomodoro, System, Tray state ---
   property bool showPomodoro: false
-  property bool showMovies: false
   property bool showSys: false
   property bool showTray: false
   
   onShowPomodoroChanged: {
     if (showPomodoro) {
       exclusiveOpen("pomodoro");
-      if (activityManager) activityManager.dismissAll();
-    }
-  }
-
-  onShowMoviesChanged: {
-    if (showMovies) {
-      exclusiveOpen("movies");
       if (activityManager) activityManager.dismissAll();
     }
   }
@@ -357,12 +349,11 @@ Rectangle {
                             : showAppLauncher ? "appLauncher" 
                             : showWallpaperMenu ? "wallpaperMenu" 
                             : showAskpass ? "askpass" 
-                            : showMovies ? "movies" 
-                             : showVpn ? "vpn" 
-                             : showTray ? "tray" 
-                              : showSys ? "sys" 
-                               : showPowerSection ? "powerSection" 
-                              : showPomodoro ? "pomodoro" 
+                            : showVpn ? "vpn" 
+                            : showTray ? "tray" 
+                            : showSys ? "sys" 
+                            : showPowerSection ? "powerSection" 
+                            : showPomodoro ? "pomodoro" 
                               : activityManager && activityManager.activeActivity && !clockWidget.isExpanded && !clockWidget._suppressMorph ? _queueState(activityManager.activeActivity.type)
                              : "default"
 
@@ -398,10 +389,6 @@ Rectangle {
     State {
       name: "askpass"
       PropertyChanges { target: clockWidget; height: 200; width: 480; radius: 28 }
-    },
-    State {
-      name: "movies"
-      PropertyChanges { target: clockWidget; height: 540; width: 540; radius: 28 }
     },
     State {
       name: "vpn"
@@ -457,10 +444,6 @@ Rectangle {
       }
       if (clockWidget.showPomodoro) {
         clockWidget.showPomodoro = false;
-        return;
-      }
-      if (clockWidget.showMovies) {
-        clockWidget.showMovies = false;
         return;
       }
       if (clockWidget.showSys) {
@@ -864,7 +847,7 @@ Rectangle {
     anchors.leftMargin: 16
     anchors.rightMargin: 16
 
-    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showPomodoro && !clockWidget.showMovies && !clockWidget.showSys && !clockWidget.showTray ? 1.0 : 0.0
+    opacity: (clockWidget.isExpanded || clockWidget.showControlCenter) && !clockWidget.showPomodoro && !clockWidget.showSys && !clockWidget.showTray ? 1.0 : 0.0
     visible: opacity > 0.0
     Behavior on opacity { NumberAnimation { duration: 150 } }
 
@@ -1013,27 +996,6 @@ Rectangle {
 
     PomodoroSection {
       anchors.fill: parent
-    }
-  }
-
-  // --- Movies expanded overlay ---
-  Item {
-    id: moviesExpandedContent
-    anchors.fill: parent
-    anchors.margins: 16
-
-    opacity: clockWidget.showMovies ? 1.0 : 0.0
-    visible: opacity > 0.0
-    Behavior on opacity { NumberAnimation { duration: 150 } }
-
-    Loader {
-      id: movieLoader
-      anchors.fill: parent
-      active: clockWidget.showMovies || opacity > 0.0
-      sourceComponent: Component {
-        MovieSection {
-        }
-      }
     }
   }
 

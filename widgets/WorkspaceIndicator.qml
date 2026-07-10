@@ -4,12 +4,12 @@ import "../theme"
 
 Item {
   id: root
-  height: 26
+  height: 24
   implicitWidth: maxPills * (pillWidth + pillSpacing) - pillSpacing + 8
 
   readonly property int maxPills: 5
   readonly property int pillWidth: 24
-  readonly property int pillHeight: 20
+  readonly property int pillHeight: 22
   readonly property int pillSpacing: 4
 
   property var items: []
@@ -60,6 +60,7 @@ Item {
   Component.onCompleted: Qt.callLater(root.update)
 
   Rectangle {
+    id: container
     anchors.fill: parent
     radius: 6
     color: Theme.surfaceContainer
@@ -90,15 +91,13 @@ Item {
 
             width: pillWidth
             height: pillHeight
-            radius: 5
-
+            radius: 6
             color: modelData.focused ? Theme.primary : (mouseArea.containsMouse ? Theme.surfaceHover : "transparent")
-            Behavior on color { ColorAnimation { duration: 120 } }
 
             Text {
               anchors.centerIn: parent
               text: modelData.id
-              color: modelData.focused ? Theme.onPrimary : Theme.text
+              color: modelData.focused ? Theme.onPrimary : (mouseArea.containsMouse ? Theme.text : Theme.muted)
               font {
                 family: "Inter"
                 pixelSize: 11

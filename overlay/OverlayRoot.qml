@@ -55,7 +55,6 @@ Item {
             activityManager.dismissByType("battery");
             island.showWallpaperMenu = false;
             island.showControlCenter = false;
-            island.showMovies = false;
             island.showPomodoro = false;
             island.showSys = false;
             island.showTray = false;
@@ -119,7 +118,6 @@ Item {
             "  test -f /tmp/qs-toggle-cc && rm /tmp/qs-toggle-cc && out=\"${out}c\"; " +
             "  test -f /tmp/qs-productivity && rm /tmp/qs-productivity && out=\"${out}d\"; " +
             "  test -f /tmp/qs-pomodoro && rm /tmp/qs-pomodoro && out=\"${out}f\"; " +
-            "  test -f /tmp/qs-movies && rm /tmp/qs-movies && out=\"${out}v\"; " +
             "  test -f /tmp/qs-sys && rm /tmp/qs-sys && out=\"${out}s\"; " +
             "  test -f /tmp/qs-tray && rm /tmp/qs-tray && out=\"${out}t\"; " +
             "  if [ -n \"$out\" ]; then echo \"$out\"; fi; " +
@@ -139,7 +137,6 @@ Item {
                 if (flags.indexOf("c") >= 0) island.showControlCenter = !island.showControlCenter;
                 if (flags.indexOf("d") >= 0) island.showProductivity = !island.showProductivity;
                 if (flags.indexOf("f") >= 0) island.showPomodoro = !island.showPomodoro;
-                if (flags.indexOf("v") >= 0) island.showMovies = !island.showMovies;
                 if (flags.indexOf("s") >= 0) island.showSys = !island.showSys;
                 if (flags.indexOf("t") >= 0) island.showTray = !island.showTray;
             }
