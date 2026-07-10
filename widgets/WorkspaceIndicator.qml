@@ -78,19 +78,6 @@ Item {
       width: row.width
       height: row.height
 
-      Rectangle {
-        id: activeHighlight
-        width: pillWidth
-        height: pillHeight
-        radius: 5
-        color: Theme.primary
-        visible: focusedIndex >= 0
-
-        x: focusedIndex >= 0 ? focusedIndex * (pillWidth + pillSpacing) : -100
-        y: 0
-        Behavior on x { NumberAnimation { duration: 200; easing: Easing.OutQuart } }
-      }
-
       Row {
         id: row
         height: parent.height
@@ -110,19 +97,21 @@ Item {
               anchors.fill: parent
               radius: 5
               color: {
-                if (index === root.focusedIndex) return "transparent"
+                if (index === root.focusedIndex) return Theme.surfaceVariant
                 if (mouseArea.containsMouse) return Theme.surfaceBright
-                return root.windowCount(modelData) > 0 ? Theme.surfaceVariant : "transparent"
+                return root.windowCount(modelData) > 0 ? Theme.surfaceContainer : "transparent"
               }
+              border.color: index === root.focusedIndex ? Theme.primary : "transparent"
+              border.width: 1
             }
 
             Text {
               anchors.centerIn: parent
               text: modelData.id
               color: {
-                if (index === root.focusedIndex) return Theme.onPrimary
+                if (index === root.focusedIndex) return Theme.primary
                 if (mouseArea.containsMouse) return Theme.text
-                return root.windowCount(modelData) > 0 ? Theme.text : Theme.muted
+                return root.windowCount(modelData) > 0 ? Theme.subtext : Theme.muted
               }
               font {
                 family: "Inter"
